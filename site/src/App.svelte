@@ -1,14 +1,31 @@
 <script>
-	// Emulator
-	//import binaryen from "binaryen"
-	export let snowflakeSimLib;
-	let simCtx;
+	import Display from './Display.svelte'
+	import { onMount } from 'svelte';
 
-	function test() {
-		simCtx = snowflakeSimLib.SnowflakeSimContext.new();
-		simCtx.step_simulation();
+	export let snowflakeSimLib;
+	let display;
+	
+	function stepSim() {
+
 	}
 
+	function initSim() {
+		simCtx = snowflakeSimLib.SnowflakeSimContext.new(500, 500, 1.0, 0.4, 0.0001);
+	}
+
+	function timeSim() {
+		console.log("Starting simulation timing");
+		let startTime = performance.now();
+
+		for (let i = 0; i < 1000; i++) {
+			simCtx.step_simulation();
+		}
+
+		let endTime = performance.now();
+		let elapsedTime = endTime - startTime
+		console.log(`Simulation took ${elapsedTime.toFixed(2)} ms (${(elapsedTime / 1000).toFixed(2)} ms)`);
+	}
+	
 </script>
 
 <svelte:head>
@@ -16,7 +33,10 @@
 </svelte:head>
 
 <main >
-	<button on:click={test}/>
+	<Display bind:this={display}></Display>
+	<button on:click={stepSim}>
+		Step
+	</button>
 </main>
 
 <style>
@@ -38,7 +58,12 @@
 	}
 
 	button {
-		width: 300px;
-		height: 100px;
+		width: 70px;
+		height: 30px;
+	}
+
+	canvas {
+		width : 500;
+		height : 500;
 	}
 </style>

@@ -1,26 +1,26 @@
-#[derive(Clone, Copy, Debug)]
 /**
  * Represents a single hexagonal cell of the simulation
  */
+#[derive(Clone, Copy, Debug)]
 struct Cell {
     water: f64,
     receptive: bool,
 }
 
-#[derive(Debug)]
 /**
  * Represents a Snowflake Simulation based on
  * Reiters model,
  * see http://www.patarnott.com/pdf/SnowCrystalGrowth.pdf for
  * more details.
  */
+#[derive(Debug)]
 pub struct SnowflakeSim {
     // Simulation state
     current: Vec<Cell>,
     next: Vec<Cell>,
     width: usize,
     height: usize,
-    // Real width
+    // Real width and height (the array is padded)
     rwidth: usize,
     rheight: usize,
 

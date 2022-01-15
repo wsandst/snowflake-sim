@@ -6,6 +6,7 @@ import { terser } from 'rollup-plugin-terser';
 import rust from "@wasm-tool/rollup-plugin-rust";
 import css from 'rollup-plugin-css-only';
 import linaria from '@linaria/rollup';
+import { string } from "rollup-plugin-string";
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -68,6 +69,13 @@ export default {
 			dedupe: ['svelte']
 		}),
 		commonjs(),
+		string({
+			// Required to be specified
+			include: ["**/*.vert", "**/*.frag"],
+	  
+			// Undefined by default
+			exclude: ["**/index.html"]
+		}),
 
 		// In dev mode, call `npm run start` once
 		// the bundle has been generated

@@ -1,11 +1,12 @@
 mod sim;
 
-static GRID_SIZE: usize = 400;
+static GRID_WIDTH: usize = 500;
+static GRID_HEIGHT: usize = 500;
 static ITERATIONS: usize = 1000;
 
 fn main() {
-    let mut simulation = sim::SnowflakeSim::new(GRID_SIZE, GRID_SIZE, 1.0, 0.4, 0.0001);
-    simulation.set_water(GRID_SIZE / 2 - 1, GRID_SIZE / 2 - 1, 1.0);
+    let mut simulation = sim::SnowflakeSim::new(GRID_WIDTH, GRID_HEIGHT, 1.0, 0.4, 0.0001);
+    simulation.set_water(GRID_WIDTH / 2 - 1, GRID_HEIGHT / 2 - 1, 1.0);
 
     use std::time::Instant;
     let now = Instant::now();
