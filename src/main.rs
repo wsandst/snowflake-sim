@@ -16,9 +16,9 @@ fn main() {
 
     let elapsed = now.elapsed();
     println!(
-        "Simulation took {:.4?} for {} iterations ({:.3?}ms per iteration)",
+        "Simulation took {:.3?} for {} iterations ({:.3?} per iteration)",
         elapsed,
         ITERATIONS,
-        (elapsed.as_secs_f64() / ITERATIONS as f64) * 1000.0
+        elapsed.div_f64(ITERATIONS as f64)
     );
 }

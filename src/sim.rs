@@ -20,6 +20,10 @@ pub struct SnowflakeSim {
     next: Vec<Cell>,
     width: usize,
     height: usize,
+    // Real width
+    rwidth: usize,
+    rheight: usize,
+
     // Simulation parameters
     pub background_vapor: f64, // Alpha
     pub vapor_addition: f64,   // Beta
@@ -34,17 +38,19 @@ impl SnowflakeSim {
                     water: 0.0,
                     receptive: false
                 };
-                width * height
+                (width + 2) * (height + 2)
             ],
             next: vec![
                 Cell {
                     water: 0.0,
                     receptive: false
                 };
-                width * height
+                (width + 2) * (height + 2)
             ],
             width: width,
             height: height,
+            rwidth: width + 2,
+            rheight: height + 2,
             vapor_diffusion: alpha,
             background_vapor: beta,
             vapor_addition: gamma,
@@ -56,17 +62,17 @@ impl SnowflakeSim {
      * seed crystal.
      */
     pub fn set_water(&mut self, x: usize, y: usize, val: f64) {
-        self.current[y * self.width + x].water = val;
+        self.current[y * self.rwidth + x].water = val;
         if val >= 1.0 {
             // This cell is now frozen, we have to do
             // some bookkeeping and mark neighbours as receptive
-            self.current[y * self.width + x].receptive = true;
-            self.next[y * self.width + x].receptive = true;
+            self.current[y * self.rwidth + x].receptive = true;
+            self.next[y * self.rwidth + x].receptive = true;
             let neighbour_coords = get_neighbours(x as isize, y as isize);
             for (nx, ny) in neighbour_coords {
                 if self.is_within_bounds(nx, ny) {
-                    self.current[(ny as usize) * self.width + (nx as usize)].receptive = true;
-                    self.next[(ny as usize) * self.width + (nx as usize)].receptive = true;
+                    self.current[(ny as usize) * self.rwidth + (nx as usize)].receptive = true;
+                    self.next[(ny as usize) * self.rwidth + (nx as usize)].receptive = true;
                 }
             }
         }
@@ -76,20 +82,20 @@ impl SnowflakeSim {
      */
     pub fn step(&mut self) {
         // Step all cells
-        for y in 0..self.height {
-            for x in 0..self.width {
+        for y in 1..self.height + 1 {
+            for x in 1..self.width + 1 {
                 self.step_cell(x, y);
             }
         }
 
         // Loop over edge cells and introduce water to the system
-        for y in 0..self.height {
-            get_cell(&mut self.next, 0, y, self.width).water = self.background_vapor;
-            get_cell(&mut self.next, self.width - 1, y, self.width).water = self.background_vapor;
+        for y in 1..self.height + 1 {
+            self.next[y * self.rwidth + 1].water = self.background_vapor;
+            self.next[y * self.rwidth + self.width].water = self.background_vapor;
         }
-        for x in 0..self.width {
-            get_cell(&mut self.next, x, 0, self.width).water = self.background_vapor;
-            get_cell(&mut self.next, x, self.height - 1, self.width).water = self.background_vapor;
+        for x in 1..self.width + 1 {
+            self.next[1 * self.rwidth + x].water = self.background_vapor;
+            self.next[self.height * self.rwidth + x].water = self.background_vapor;
         }
 
         // Swap current and next
@@ -97,15 +103,15 @@ impl SnowflakeSim {
     }
 
     fn is_within_bounds(&self, x: isize, y: isize) -> bool {
-        return x >= 0 && x < self.width as isize && y >= 0 && y < self.height as isize;
+        return x >= 1 && x <= self.width as isize && y >= 1 && y <= self.height as isize;
     }
 
     /**
      * Step a single cell for one iteration
      */
     fn step_cell(&mut self, x: usize, y: usize) {
-        let cell: Cell = self.current[y * self.width + x];
-        let mut next_cell = self.next[y * self.width + x];
+        let cell: Cell = self.current[y * self.rwidth + x];
+        let mut next_cell = self.next[y * self.rwidth + x];
 
         let mut diff_particip: f64 = 0.0;
         let mut diff_nonparticip: f64 = 0.0;
@@ -121,11 +127,9 @@ impl SnowflakeSim {
 
         let neighbour_coords = get_neighbours(x as isize, y as isize);
         for (nx, ny) in neighbour_coords {
-            if self.is_within_bounds(nx, ny) {
-                let neighbour = self.current[((ny) as usize) * self.width + nx as usize];
-                if !neighbour.receptive {
-                    water_avg += neighbour.water;
-                }
+            let neighbour = self.current[((ny) as usize) * self.rwidth + nx as usize];
+            if !neighbour.receptive {
+                water_avg += neighbour.water;
             }
         }
 
@@ -142,12 +146,12 @@ impl SnowflakeSim {
             // receptive
             for (nx, ny) in neighbour_coords {
                 if self.is_within_bounds(nx, ny) {
-                    self.current[(ny as usize) * self.width + (nx as usize)].receptive = true;
+                    self.current[(ny as usize) * self.rwidth + (nx as usize)].receptive = true;
                 }
             }
         }
 
-        self.next[y * self.width + x] = next_cell;
+        self.next[y * self.rwidth + x] = next_cell;
     }
 }
 
@@ -156,9 +160,9 @@ impl SnowflakeSim {
  */
 impl std::fmt::Display for SnowflakeSim {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
-        for y in 0..self.height {
-            for x in 0..self.height {
-                fmt.write_str(&format!("{:.2} ", self.current[y * self.width + x].water))?;
+        for y in 0..self.rheight {
+            for x in 0..self.rheight {
+                fmt.write_str(&format!("{:.2} ", self.current[y * self.rwidth + x].water))?;
             }
             fmt.write_str("\n")?;
         }
