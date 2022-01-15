@@ -6,6 +6,12 @@ struct Cell {
 }
 
 #[derive(Debug)]
+/**
+ * Represents a Snowflake Simulation based on
+ * Reiters model,
+ * see http://www.patarnott.com/pdf/SnowCrystalGrowth.pdf for
+ * more details.
+ */
 pub struct SnowflakeSim {
     // Simulation state
     current : Vec<Cell>,
@@ -31,6 +37,10 @@ impl SnowflakeSim {
         }
     }
 
+    /**
+     * Set the water level of a cell. Useful for initial setup of the
+     * seed crystal.
+     */
     pub fn set_water(&mut self, x : usize, y: usize, val : f64) {
         self.current[y*self.width + x].water = val;
         if val >= 1.0 {
@@ -43,6 +53,9 @@ impl SnowflakeSim {
         }
     }
     
+    /**
+     * Step the simulation one iteration
+     */
     pub fn step(&mut self) {
         // Step all cells
         for y in 0..self.height {
@@ -65,9 +78,12 @@ impl SnowflakeSim {
         std::mem::swap(&mut self.current, &mut self.next);
     }
 
+    /** 
+     * Step a single cell for one iteration
+     */
     fn step_cell(&mut self, x : usize, y: usize) {
         let cell : Cell = self.current[y*self.width + x];
-        let mut next_cell = self.next[y*self.width + x]; //&Cell = &mut self.next[y*self.width + x];
+        let mut next_cell = self.next[y*self.width + x];
 
         let mut diff_particip : f64 = 0.0;
         let mut diff_nonparticip : f64 = 0.0;
@@ -79,6 +95,7 @@ impl SnowflakeSim {
             diff_particip = cell.water;
         }
 
+        // Count the average water content among the neighbours
         let mut water_avg : f64 = 0.0;
         for (nx, ny) in get_neighbours(x as isize, y as isize, self.width, self.height) {
             let neighbour = self.current[(ny as usize)*self.width + nx as usize];
@@ -88,20 +105,27 @@ impl SnowflakeSim {
         }
         water_avg = water_avg / 6.0;
 
+        // Diffuse
         diff_particip = diff_particip + (self.vapor_diffusion/2.0) * (water_avg - diff_particip);
 
         let started_frozen = next_cell.water >= 1.0;
         next_cell.water = diff_particip + diff_nonparticip;
         let ended_frozen = next_cell.water >= 1.0;
         if started_frozen != ended_frozen {
+            // If this cell was just frozen, we need to update the neighbours as
+            // receptive
             for (nx, ny) in get_neighbours(x as isize, y as isize, self.width, self.height) {
                 self.current[(ny as usize)*self.width + (nx as usize)].receptive = true;
             }
         }
+
         self.next[y*self.width + x] = next_cell;
     }
 }
 
+/**
+ * Implement display trait to allow for printing of the simulation
+ */
 impl std::fmt::Display for SnowflakeSim {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
         for y in 0..self.height {
@@ -114,6 +138,11 @@ impl std::fmt::Display for SnowflakeSim {
     }
 }
 
+// Helper methods
+
+/**
+ * Get a cell from the vector
+ */
 fn get_cell(cells : &mut Vec<Cell>, x : usize, y: usize, width : usize) -> &mut Cell {
     return &mut cells[y*width + x];
 }
