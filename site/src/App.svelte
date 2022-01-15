@@ -6,7 +6,7 @@
 
 	function test() {
 		simCtx = snowflakeSimLib.SnowflakeSimContext.new();
-		console.log(simCtx.get_str());
+		simCtx.step_simulation();
 	}
 
 </script>

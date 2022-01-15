@@ -1,5 +1,5 @@
 [package]
-name = "gb-emulator-web"
+name = "snowflake-sim"
 version = "0.1.0"
 authors = ["wsandst <williamsandstrom99@hotmail.com>"]
 edition = "2018"
