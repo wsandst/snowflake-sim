@@ -5,7 +5,7 @@ import * as mat4 from 'gl-matrix/mat4';
 import * as vec3 from 'gl-matrix/vec3';
 
 // Draw the scene
-export function draw(glCtx, programInfo, buffers, rotateX) {
+export function draw(glCtx, programInfo, buffers) {
     glCtx.clearColor(0.0, 0.0, 0.0, 1.0);  
     glCtx.clearDepth(1.0);            
     glCtx.enable(glCtx.DEPTH_TEST);
@@ -40,9 +40,6 @@ export function draw(glCtx, programInfo, buffers, rotateX) {
                     modelViewMatrix,     // matrix to translate
                     [-0.0, 0.0, -6.0]);  // amount to translate
 
-    mat4.rotateX(modelViewMatrix, modelViewMatrix, rotateX);
-    mat4.rotateY(modelViewMatrix, modelViewMatrix, rotateX);
-
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
     {
@@ -63,6 +60,25 @@ export function draw(glCtx, programInfo, buffers, rotateX) {
         glCtx.enableVertexAttribArray(
             programInfo.attribLocations.vertexPosition);
     }
+
+    // Setup color buffer
+    {
+        const numComponents = 4;
+        const type = glCtx.FLOAT;
+        const normalize = false;
+        const stride = 0;
+        const offset = 0;
+        glCtx.bindBuffer(glCtx.ARRAY_BUFFER, buffers.color);
+        glCtx.vertexAttribPointer(
+            programInfo.attribLocations.vertexColor,
+            numComponents,
+            type,
+            normalize,
+            stride,
+            offset);
+        glCtx.enableVertexAttribArray(
+            programInfo.attribLocations.vertexColor);
+      }
 
     // Tell WebGL to use our program when drawing
     glCtx.useProgram(programInfo.program);
@@ -88,32 +104,21 @@ export function initBuffers(glCtx) {
     // Create a buffer for the square's positions.
 
     const positionBuffer = glCtx.createBuffer();
-
-    // Select the positionBuffer as the one to apply buffer
-    // operations to from here out.
-
-    glCtx.bindBuffer(glCtx.ARRAY_BUFFER, positionBuffer);
-
-    // Now create an array of positions for the square.
-
-    const positions = [
-        1.0,  1.0,
-        -1.0,  1.0,
-        1.0, -1.0,
-        -1.0, -1.0,
-    ];
-
-    // Now pass the list of positions into WebGL to build the
-    // shape. We do this by creating a Float32Array from the
-    // JavaScript array, then use it to fill the current buffer.
-
-    glCtx.bufferData(glCtx.ARRAY_BUFFER,
-                new Float32Array(positions),
-                glCtx.STATIC_DRAW);
+    const colorBuffer = glCtx.createBuffer();
 
     return {
         position: positionBuffer,
+        color: colorBuffer,
     };
+}
+
+export function updateBufferData(glCtx, buffer, bufferData) {
+    // Bind (select) the provided buffer
+    glCtx.bindBuffer(glCtx.ARRAY_BUFFER, buffer);
+
+    glCtx.bufferData(glCtx.ARRAY_BUFFER,
+                new Float32Array(bufferData),
+                glCtx.STATIC_DRAW);
 }
 
 // Compile a shader from source

@@ -3,14 +3,38 @@
 	import { onMount } from 'svelte';
 
 	export let snowflakeSimLib;
+	let simCtx;
 	let display;
 	
+	onMount(() => {
+		// Start render loop
+		initSim();
+		simulationLoop();
+	});
+
+	function simulationLoop() {
+		display.renderFrame();
+		requestAnimationFrame(simulationLoop);
+	}
+
 	function stepSim() {
 
 	}
 
 	function initSim() {
 		simCtx = snowflakeSimLib.SnowflakeSimContext.new(500, 500, 1.0, 0.4, 0.0001);
+		display.updatePositionBuffer([
+            1.0,  1.0,
+            -1.0,  1.0,
+            1.0, -1.0,
+            -1.0, -1.0]
+        );
+		display.updateColorBuffer([
+            1.0,  1.0,  1.0,  1.0,    // white
+            1.0,  0.0,  0.0,  1.0,    // red
+            0.0,  1.0,  0.0,  1.0,    // green
+            0.0,  0.0,  1.0,  1.0,    // blue
+        ]);
 	}
 
 	function timeSim() {

@@ -27,6 +27,7 @@
 				program: shaderProgram,
 				attribLocations: {
 				vertexPosition: glCtx.getAttribLocation(shaderProgram, 'aVertexPosition'),
+                vertexColor: glCtx.getAttribLocation(shaderProgram, 'aVertexColor'),
 			},
 				uniformLocations: {
 				projectionMatrix: glCtx.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
@@ -35,15 +36,29 @@
 		};
 
 		buffers = render.initBuffers(glCtx);
-        // Start render loop
-		renderFrame();
+
 	});
 
-	function renderFrame() {
+    /**
+     * Update the vertex position buffer
+     * @param buffer vertex position buffer (x, y) * N
+     */
+    export function updatePositionBuffer(buffer) {
+        render.updateBufferData(glCtx, buffers.position, buffer);
+    }
+
+    /**
+     * Update the vertex color buffer
+     * @param buffer vertex color buffer (r, g, b, a) * N
+     */
+    export function updateColorBuffer(buffer) {
+        render.updateBufferData(glCtx, buffers.color, buffer);
+    }
+
+	export function renderFrame() {
 		// call again next time we can draw
-		requestAnimationFrame(renderFrame);
 		rotateX += 0.01;
-		render.draw(glCtx, programInfo, buffers, rotateX);
+		render.draw(glCtx, programInfo, buffers);
 	}
 
 </script>
