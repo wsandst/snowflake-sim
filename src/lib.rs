@@ -1,7 +1,7 @@
 use wasm_bindgen::prelude::*;
 mod sim;
 
-static HEX_SIZE: f32 = 0.3;
+static HEX_SIZE: f32 = 1.0;
 
 #[wasm_bindgen]
 /**
@@ -59,7 +59,7 @@ impl SnowflakeSimContext {
                 ];
                 // (5, 4, 0), (4, 0, 3), (0, 3, 1), (3, 1, 2) forms a hexagon
                 // with 4 triangles and correct winding
-                let corner_indices = [1, 2, 3];
+                let corner_indices = [0, 1, 2, 0, 5, 2, 5, 3, 2, 5, 3, 4];
                 for corner_index in corner_indices {
                     self.vertex_positions[i + 0] = corners[corner_index].0;
                     self.vertex_positions[i + 1] = corners[corner_index].1;
@@ -75,14 +75,12 @@ impl SnowflakeSimContext {
 
     pub fn update_vertex_colors(&mut self) {
         let mut i = 0;
-        for _ in 0..self.sim.height {
-            for _ in 0..self.sim.width {
-                for _ in 0..4 {
-                    let color = js_sys::Math::random() as f32;
-                    for _ in 0..4 * 3 {
-                        self.vertex_colors[i] = color;
-                        i += 1;
-                    }
+        for x in 0..self.sim.height {
+            for y in 0..self.sim.width {
+                let color = self.sim.get_water(x, y) as f32;
+                for _ in 0..4 * 4 * 3 {
+                    self.vertex_colors[i] = color;
+                    i += 1;
                 }
             }
         }
@@ -122,7 +120,7 @@ impl SnowflakeSimContext {
 }
 
 fn hex_corner(cx: f32, cy: f32, size: f32, i: usize) -> (f32, f32) {
-    let angle_deg = (60 * i - 30) as f32;
+    let angle_deg = (60 * (i as isize) - 30) as f32;
     let angle_rad = 3.14159265 / 180.0 * angle_deg;
     return (cx + size * angle_rad.cos(), cy + size * angle_rad.sin());
 }

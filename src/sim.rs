@@ -85,7 +85,7 @@ impl SnowflakeSim {
      * Set the water level of a cell. Useful for initial setup of the
      * seed crystal.
      */
-    pub fn get_water(&mut self, mut x: usize, mut y: usize, val: f64) -> f64 {
+    pub fn get_water(&mut self, mut x: usize, mut y: usize) -> f64 {
         // Adjust for padding manually
         x = x + 1;
         y = y + 1;

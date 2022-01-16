@@ -14,6 +14,8 @@
 	let buffers;
 	let programInfo;
 	let vertexCount = 0;
+	let hexWidth;
+	let hexHeight
 
 	onMount(() => {
 		canvas.width = 500;
@@ -56,9 +58,14 @@
         render.updateBufferData(glCtx, buffers.color, buffer);
     }
 
+	export function setSimSize(width, height) {
+		hexWidth = width;
+		hexHeight = height;
+	}
+
 	export function renderFrame() {
 		// call again next time we can draw
-		render.draw(glCtx, programInfo, buffers, vertexCount);
+		render.draw(glCtx, programInfo, buffers, vertexCount, 0.055 * (50 / hexWidth), [-2.35, -2, -6.0]);
 	}
 
 </script>

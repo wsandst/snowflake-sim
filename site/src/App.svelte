@@ -1,10 +1,14 @@
 <script>
 	import Display from './Display.svelte'
 	import { onMount } from 'svelte';
+import { xlink_attr } from 'svelte/internal';
 
 	export let snowflakeSimLib;
 	let simCtx;
 	let display;
+	let simRunning = false;
+	let iterationCount = 0;
+	const simSize = 50;
 	
 	onMount(() => {
 		// Start render loop
@@ -14,19 +18,33 @@
 
 	function simulationLoop() {
 		display.renderFrame();
-		requestAnimationFrame(simulationLoop);
+		stepSim();
+		if (simRunning) {
+			requestAnimationFrame(simulationLoop);
+		}
 	}
 
 	function stepSim() {
+		simCtx.step_simulation();
+		simCtx.update_vertex_colors();
+		display.updateColorBuffer(simCtx.get_vertex_colors());
+		iterationCount += 1;
+		console.log(`Iteration ${iterationCount}`);
+	}
 
+	function toggleSim() {
+		simRunning = !simRunning;
+		if (simRunning) {
+			requestAnimationFrame(simulationLoop);
+		}
 	}
 
 	function initSim() {
-		simCtx = snowflakeSimLib.SnowflakeSimContext.new(50, 50, 1.0, 0.4, 0.0001);
+		simCtx = snowflakeSimLib.SnowflakeSimContext.new(simSize, simSize, 1.0, 0.4, 0.0001);
+		simCtx.set_cell(simSize / 2, simSize / 2, 1.0);
 		simCtx.create_vertex_positions();
 		simCtx.update_vertex_colors();
-		let pos = simCtx.get_vertex_positions();
-		console.log(pos);
+		display.setSimSize(simSize, simSize);
 		display.updatePositionBuffer(simCtx.get_vertex_positions());
 		display.updateColorBuffer(simCtx.get_vertex_colors());
 	}
@@ -52,8 +70,12 @@
 
 <main >
 	<Display bind:this={display}></Display>
-	<button on:click={stepSim}>
-		Step
+	<button on:click={toggleSim}>
+		{#if !simRunning}
+			Start Simulation
+		{:else}
+			Stop Simulation
+		{/if}
 	</button>
 </main>
 
@@ -76,7 +98,7 @@
 	}
 
 	button {
-		width: 70px;
+		width: 120px;
 		height: 30px;
 	}
 

@@ -5,7 +5,7 @@ import * as mat4 from 'gl-matrix/mat4';
 import * as vec3 from 'gl-matrix/vec3';
 
 // Draw the scene
-export function draw(glCtx, programInfo, buffers, vertexCount) {
+export function draw(glCtx, programInfo, buffers, vertexCount, scale, offset) {
     glCtx.clearColor(0.0, 0.0, 0.0, 1.0);  
     glCtx.clearDepth(1.0);            
     glCtx.enable(glCtx.DEPTH_TEST);
@@ -38,7 +38,9 @@ export function draw(glCtx, programInfo, buffers, vertexCount) {
 
     mat4.translate(modelViewMatrix,     // destination matrix
                     modelViewMatrix,     // matrix to translate
-                    [-0.0, 0.0, -6.0]);  // amount to translate
+                    offset);  // amount to translate
+
+    mat4.scale(modelViewMatrix, modelViewMatrix, [scale, scale, 1.0])
 
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
@@ -94,7 +96,7 @@ export function draw(glCtx, programInfo, buffers, vertexCount) {
         modelViewMatrix);
     {
         const offset = 0;
-        glCtx.drawArrays(glCtx.TRIANGLES, offset, vertexCount/4);
+        glCtx.drawArrays(glCtx.TRIANGLES, offset, vertexCount);
     }
 }
 
