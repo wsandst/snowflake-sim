@@ -22,19 +22,13 @@
 	}
 
 	function initSim() {
-		simCtx = snowflakeSimLib.SnowflakeSimContext.new(500, 500, 1.0, 0.4, 0.0001);
-		display.updatePositionBuffer([
-            1.0,  1.0,
-            -1.0,  1.0,
-            1.0, -1.0,
-            -1.0, -1.0]
-        );
-		display.updateColorBuffer([
-            1.0,  1.0,  1.0,  1.0,    // white
-            1.0,  0.0,  0.0,  1.0,    // red
-            0.0,  1.0,  0.0,  1.0,    // green
-            0.0,  0.0,  1.0,  1.0,    // blue
-        ]);
+		simCtx = snowflakeSimLib.SnowflakeSimContext.new(50, 50, 1.0, 0.4, 0.0001);
+		simCtx.create_vertex_positions();
+		simCtx.update_vertex_colors();
+		let pos = simCtx.get_vertex_positions();
+		console.log(pos);
+		display.updatePositionBuffer(simCtx.get_vertex_positions());
+		display.updateColorBuffer(simCtx.get_vertex_colors());
 	}
 
 	function timeSim() {

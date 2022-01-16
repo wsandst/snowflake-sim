@@ -13,7 +13,7 @@
 	let shaderProgram;
 	let buffers;
 	let programInfo;
-	let rotateX = 0;
+	let vertexCount = 0;
 
 	onMount(() => {
 		canvas.width = 500;
@@ -45,6 +45,7 @@
      */
     export function updatePositionBuffer(buffer) {
         render.updateBufferData(glCtx, buffers.position, buffer);
+        vertexCount = buffer.length / 2;
     }
 
     /**
@@ -57,8 +58,7 @@
 
 	export function renderFrame() {
 		// call again next time we can draw
-		rotateX += 0.01;
-		render.draw(glCtx, programInfo, buffers);
+		render.draw(glCtx, programInfo, buffers, vertexCount);
 	}
 
 </script>

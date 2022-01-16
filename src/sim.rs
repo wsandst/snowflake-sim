@@ -18,8 +18,8 @@ pub struct SnowflakeSim {
     // Simulation state
     current: Vec<Cell>,
     next: Vec<Cell>,
-    width: usize,
-    height: usize,
+    pub width: usize,
+    pub height: usize,
     // Real width and height (the array is padded)
     rwidth: usize,
     rheight: usize,
@@ -61,7 +61,10 @@ impl SnowflakeSim {
      * Set the water level of a cell. Useful for initial setup of the
      * seed crystal.
      */
-    pub fn set_water(&mut self, x: usize, y: usize, val: f64) {
+    pub fn set_water(&mut self, mut x: usize, mut y: usize, val: f64) {
+        // Adjust for padding manually
+        x = x + 1;
+        y = y + 1;
         self.current[y * self.rwidth + x].water = val;
         if val >= 1.0 {
             // This cell is now frozen, we have to do
@@ -76,6 +79,17 @@ impl SnowflakeSim {
                 }
             }
         }
+    }
+
+    /**
+     * Set the water level of a cell. Useful for initial setup of the
+     * seed crystal.
+     */
+    pub fn get_water(&mut self, mut x: usize, mut y: usize, val: f64) -> f64 {
+        // Adjust for padding manually
+        x = x + 1;
+        y = y + 1;
+        return self.current[y * self.rwidth + x].water;
     }
     /**
      * Step the simulation one iteration
