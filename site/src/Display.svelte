@@ -7,6 +7,7 @@
     // Import shader sources as strings
     import vertShaderSource from './shaders/vertex.vert'
     import fragShaderSource from './shaders/fragment.frag'
+import { sqrDist } from 'gl-matrix/cjs/vec3';
 
 	let canvas;
 	// WebGL internal state
@@ -19,13 +20,13 @@
 	let hexWidth;
 	let hexHeight
 	const color = [0.5, 0.82, 0.96, 1.0];
-	const scale = 2.75; //0.055 * (50 / hexWidth), [-2.35, -2, -6.0];
-	const offset = [-2.35, -2, -6.0]
+	let offset = [0, 0];
+	let scale = 1.0;
 
 	onMount(() => {
 		canvas.width = 500;
 		canvas.height = 500;
-		glCtx = canvas.getContext("webgl");
+		glCtx = canvas.getContext("webgl", {antialias: true});
         
         // Setup WebGL context
 		shaderProgram = render.initShaderProgram(glCtx, vertShaderSource, fragShaderSource);
@@ -67,16 +68,43 @@
 	export function setSimSize(width, height) {
 		hexWidth = width;
 		hexHeight = height;
+		scale = 490/(width*Math.sqrt(3));
+		offset = [5, 35];
 	}
 
 	export function renderFrame() {
 		// call again next time we can draw
-		render.draw(glCtx, programInfo, buffers, vertexCount, scale / hexWidth, offset, color);
+		render.draw(glCtx, programInfo, buffers, vertexCount, offset, scale, color);
+	}
+
+	function zoom(event) {
+		let x = event.offsetX / scale + offset[0];
+		let y = (500 - event.offsetY) / scale + offset[1];
+		let zoomScale = (event.deltaY * -0.001);
+		let newScale = scale + scale*zoomScale;
+		let scaleDelta = newScale - scale;
+		let offsetX = -(x * scaleDelta);
+		let offsetY = -(y * scaleDelta);
+		scale = newScale;
+		offset = [offsetX, offsetY];
+		renderFrame();
+
+		/*let x = (event.offsetX - offset[0]) / scale;
+		let y = (event.offsetY - offset[1]) / scale;
+		let zoomScale = (event.deltaY * -0.001);
+		scale = scale + scale*zoomScale;
+		//let scaleDelta = newScale - scale;
+		//let offsetX = (x * scaleDelta);
+		//let offsetY = (y * scaleDelta);
+		//console.log(offsetX, offsetY, offset);
+		//scale = newScale;
+		offset = [event.offsetX - x * scale, event.offsetY - y * scale];
+		renderFrame();*/
 	}
 
 </script>
 
-<canvas bind:this={canvas}>
+<canvas bind:this={canvas} on:mousewheel={zoom}>
 
 </canvas>
 

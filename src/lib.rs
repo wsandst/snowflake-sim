@@ -83,7 +83,7 @@ impl SnowflakeSimContext {
         for y in 0..self.sim.height {
             for x in 0..self.sim.width {
                 let water = self.sim.get_water(x, y) as f32;
-                let color = if water < COLOR_CUTTOFF { 0.0 } else { water };
+                let color = if water < COLOR_CUTTOFF { 0.4 } else { water };
                 for _ in 0..4 * 3 {
                     self.vertex_colors[i + 0] = color;
                     self.vertex_colors[i + 1] = color;

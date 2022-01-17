@@ -5,11 +5,12 @@ import * as mat4 from 'gl-matrix/mat4';
 import * as vec3 from 'gl-matrix/vec3';
 
 // Draw the scene
-export function draw(glCtx, programInfo, buffers, vertexCount, scale, offset, color) {
+export function draw(glCtx, programInfo, buffers, vertexCount, offset, scale, color) {
     glCtx.clearColor(0.0, 0.0, 0.0, 1.0);  
     glCtx.clearDepth(1.0);            
     glCtx.enable(glCtx.DEPTH_TEST);
-    glCtx.depthFunc(glCtx.LEQUAL);
+    glCtx.disable(glCtx.CULL_FACE);
+    //glCtx.depthFunc(glCtx.LEQUAL);
 
     // Clear the canvas before we start drawing on it.
     glCtx.clear(glCtx.COLOR_BUFFER_BIT | glCtx.DEPTH_BUFFER_BIT);
@@ -21,26 +22,15 @@ export function draw(glCtx, programInfo, buffers, vertexCount, scale, offset, co
     const zFar = 100.0;
     const projectionMatrix = mat4.create();
 
-    // note: glmatrix.js always has the first argument
-    // as the destination to receive the result.
-    mat4.perspective(projectionMatrix,
-                    fieldOfView,
-                    aspect,
-                    zNear,
-                    zFar);
 
-    // Set the drawing position to the "identity" point, which is
-    // the center of the scene.
+    mat4.ortho(projectionMatrix, 0, 500, 0, 500, zNear, zFar);
+
     const modelViewMatrix = mat4.create();
 
-    // Now move the drawing position a bit to where we want to
-    // start drawing the square.
-
-    mat4.translate(modelViewMatrix,     // destination matrix
-                    modelViewMatrix,     // matrix to translate
-                    offset);  // amount to translate
-
-    mat4.scale(modelViewMatrix, modelViewMatrix, [scale, scale, 1.0])
+    mat4.lookAt(modelViewMatrix, [0, 0, 6], [0, 0, 0], [0, 1, 0]);
+    mat4.translate(modelViewMatrix, modelViewMatrix, [offset[0], offset[1], 0]);
+    mat4.scale(modelViewMatrix, modelViewMatrix, [scale, scale, 0])
+    
 
     // Tell WebGL how to pull out the positions from the position
     // buffer into the vertexPosition attribute.
@@ -99,8 +89,7 @@ export function draw(glCtx, programInfo, buffers, vertexCount, scale, offset, co
         color,
     )
     {
-        const offset = 0;
-        glCtx.drawArrays(glCtx.TRIANGLES, offset, vertexCount);
+        glCtx.drawArrays(glCtx.TRIANGLES, 0, vertexCount);
     }
 }
 
