@@ -8,7 +8,7 @@ import { xlink_attr } from 'svelte/internal';
 	let display;
 	let simRunning = false;
 	let iterationCount = 0;
-	const simSize = 100;
+	const simSize = 400;
 	
 	onMount(() => {
 		// Start render loop
