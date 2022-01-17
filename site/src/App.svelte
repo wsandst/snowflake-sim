@@ -70,14 +70,16 @@ import { xlink_attr } from 'svelte/internal';
 </svelte:head>
 
 <main >
-	<Display bind:this={display}></Display>
-	<button on:click={toggleSim}>
-		{#if !simRunning}
-			Start Simulation
-		{:else}
-			Stop Simulation
-		{/if}
-	</button>
+	<div id="column">
+		<Display bind:this={display}></Display>
+		<button on:click={toggleSim}>
+			{#if !simRunning}
+				Start Simulation
+			{:else}
+				Stop Simulation
+			{/if}
+		</button>
+	</div>
 </main>
 
 <style>
@@ -103,8 +105,14 @@ import { xlink_attr } from 'svelte/internal';
 		height: 30px;
 	}
 
-	canvas {
-		width : 500;
-		height : 500;
+	#column {
+		width: 50%;
+		height: 100%;
+		margin: 0 auto;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		gap: 10px;
 	}
 </style>

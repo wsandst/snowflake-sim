@@ -61,7 +61,6 @@
      * @param buffer vertex color buffer (r, g, b, a) * N
      */
     export function updateColorBuffer(buffer) {
-		console.log(buffer);
         render.updateBufferData(glCtx, buffers.color, buffer);
     }
 
@@ -82,5 +81,8 @@
 </canvas>
 
 <style>
-    
+    canvas {
+		width: 500px;
+		height: 500px;
+	}
 </style>

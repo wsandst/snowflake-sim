@@ -178,13 +178,6 @@ impl std::fmt::Display for SnowflakeSim {
     }
 }
 
-// Helper methods
-
-/// Get a mutable cell from the vector
-fn get_cell(cells: &mut Vec<Cell>, x: usize, y: usize, width: usize) -> &mut Cell {
-    return &mut cells[y * width + x];
-}
-
 /// Get an array of the 6 neighbour coordinates. These can be
 /// out of bounds.
 fn get_neighbours(x: isize, y: isize) -> [(isize, isize); 6] {
