@@ -8,7 +8,7 @@ import { xlink_attr } from 'svelte/internal';
 	let display;
 	let simRunning = false;
 	let iterationCount = 0;
-	const simSize = 50;
+	const simSize = 100;
 	
 	onMount(() => {
 		// Start render loop
@@ -42,6 +42,7 @@ import { xlink_attr } from 'svelte/internal';
 	function initSim() {
 		simCtx = snowflakeSimLib.SnowflakeSimContext.new(simSize, simSize, 1.0, 0.4, 0.0001);
 		simCtx.set_cell(simSize / 2, simSize / 2, 1.0);
+		simCtx.step_simulation();
 		simCtx.create_vertex_positions();
 		simCtx.update_vertex_colors();
 		display.setSimSize(simSize, simSize);

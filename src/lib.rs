@@ -75,8 +75,8 @@ impl SnowflakeSimContext {
 
     pub fn update_vertex_colors(&mut self) {
         let mut i = 0;
-        for x in 0..self.sim.height {
-            for y in 0..self.sim.width {
+        for y in 0..self.sim.height {
+            for x in 0..self.sim.width {
                 let color = self.sim.get_water(x, y) as f32;
                 for _ in 0..4 * 4 * 3 {
                     self.vertex_colors[i] = color;

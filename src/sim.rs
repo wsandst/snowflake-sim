@@ -35,14 +35,14 @@ impl SnowflakeSim {
         SnowflakeSim {
             current: vec![
                 Cell {
-                    water: 0.0,
+                    water: beta,
                     receptive: false
                 };
                 (width + 2) * (height + 2)
             ],
             next: vec![
                 Cell {
-                    water: 0.0,
+                    water: beta,
                     receptive: false
                 };
                 (width + 2) * (height + 2)
@@ -145,6 +145,9 @@ impl SnowflakeSim {
             if !neighbour.receptive {
                 water_avg += neighbour.water;
             }
+            //if cell.receptive {
+            //    self.next[((ny) as usize) * self.rwidth + nx as usize].water = 1.0;
+            //}
         }
 
         water_avg = water_avg / 6.0;
@@ -160,7 +163,7 @@ impl SnowflakeSim {
             // receptive
             for (nx, ny) in neighbour_coords {
                 if self.is_within_bounds(nx, ny) {
-                    self.current[(ny as usize) * self.rwidth + (nx as usize)].receptive = true;
+                    self.next[(ny as usize) * self.rwidth + (nx as usize)].receptive = true;
                 }
             }
         }
@@ -198,7 +201,7 @@ fn get_cell(cells: &mut Vec<Cell>, x: usize, y: usize, width: usize) -> &mut Cel
  * out of bounds.
  */
 fn get_neighbours(x: isize, y: isize) -> [(isize, isize); 6] {
-    return if y % 2 == 0 {
+    return if y % 2 == 1 {
         [
             (x + 1, y),
             (x, y - 1),
