@@ -1,18 +1,14 @@
-/**
- * Represents a single hexagonal cell of the simulation
- */
+/// Represents a single hexagonal cell of the simulation
 #[derive(Clone, Copy, Debug)]
 struct Cell {
     water: f64,
     receptive: bool,
 }
 
-/**
- * Represents a Snowflake Simulation based on
- * Reiters model,
- * see http://www.patarnott.com/pdf/SnowCrystalGrowth.pdf for
- * more details.
- */
+/// Represents a Snowflake Simulation based on
+/// Reiters model,
+/// see http://www.patarnott.com/pdf/SnowCrystalGrowth.pdf for
+/// more details.
 #[derive(Debug)]
 pub struct SnowflakeSim {
     // Simulation state
@@ -25,9 +21,12 @@ pub struct SnowflakeSim {
     rheight: usize,
 
     // Simulation parameters
-    pub background_vapor: f64, // Alpha
-    pub vapor_addition: f64,   // Beta
-    pub vapor_diffusion: f64,  // Gamma
+    /// Alpha
+    pub background_vapor: f64,
+    /// Beta
+    pub vapor_addition: f64,
+    /// Gamma
+    pub vapor_diffusion: f64,
 }
 
 impl SnowflakeSim {
@@ -57,10 +56,8 @@ impl SnowflakeSim {
         }
     }
 
-    /**
-     * Set the water level of a cell. Useful for initial setup of the
-     * seed crystal.
-     */
+    /// Set the water level of a cell. Useful for initial setup of the
+    /// seed crystal.
     pub fn set_water(&mut self, mut x: usize, mut y: usize, val: f64) {
         // Adjust for padding manually
         x = x + 1;
@@ -81,19 +78,16 @@ impl SnowflakeSim {
         }
     }
 
-    /**
-     * Set the water level of a cell. Useful for initial setup of the
-     * seed crystal.
-     */
+    /// Set the water level of a cell. Useful for initial setup of the
+    /// seed crystal.
     pub fn get_water(&mut self, mut x: usize, mut y: usize) -> f64 {
         // Adjust for padding manually
         x = x + 1;
         y = y + 1;
         return self.current[y * self.rwidth + x].water;
     }
-    /**
-     * Step the simulation one iteration
-     */
+
+    /// Step the Reiters Model simulation one iteration.
     pub fn step(&mut self) {
         // Step all cells
         for y in 1..self.height + 1 {
@@ -116,13 +110,12 @@ impl SnowflakeSim {
         std::mem::swap(&mut self.current, &mut self.next);
     }
 
+    /// Is a position within bounds of the simulation?
     fn is_within_bounds(&self, x: isize, y: isize) -> bool {
         return x >= 1 && x <= self.width as isize && y >= 1 && y <= self.height as isize;
     }
 
-    /**
-     * Step a single cell for one iteration
-     */
+    /// Step a single cell for one iteration
     fn step_cell(&mut self, x: usize, y: usize) {
         let cell: Cell = self.current[y * self.rwidth + x];
         let mut next_cell = self.next[y * self.rwidth + x];
@@ -172,9 +165,7 @@ impl SnowflakeSim {
     }
 }
 
-/**
- * Implement display trait to allow for printing of the simulation
- */
+// Implement display trait to allow for printing of the simulation
 impl std::fmt::Display for SnowflakeSim {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
         for y in 0..self.rheight {
@@ -189,17 +180,13 @@ impl std::fmt::Display for SnowflakeSim {
 
 // Helper methods
 
-/**
- * Get a cell from the vector
- */
+/// Get a mutable cell from the vector
 fn get_cell(cells: &mut Vec<Cell>, x: usize, y: usize, width: usize) -> &mut Cell {
     return &mut cells[y * width + x];
 }
 
-/**
- * Get an array of the 6 neighbour coordinates. These can be
- * out of bounds.
- */
+/// Get an array of the 6 neighbour coordinates. These can be
+/// out of bounds.
 fn get_neighbours(x: isize, y: isize) -> [(isize, isize); 6] {
     return if y % 2 == 1 {
         [

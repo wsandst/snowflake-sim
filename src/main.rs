@@ -1,5 +1,7 @@
 mod sim;
 
+// Tests the performance of the simulation
+
 static GRID_WIDTH: usize = 500;
 static GRID_HEIGHT: usize = 500;
 static ITERATIONS: usize = 1000;

@@ -1,13 +1,16 @@
 use wasm_bindgen::prelude::*;
 mod sim;
 
+/// Hexagon size for creating vertices. This should be
+/// 1.0 and then rescaled in the view, not here in the simulation
 static HEX_SIZE: f32 = 1.0;
+/// At what water value should we start displaying color?
+static COLOR_CUTTOFF: f32 = 0.6;
 
 #[wasm_bindgen]
-/**
- * Represents the simulation context which exposes an interface of the
- * simulation as well as helpers for rendering the simulation
- */
+
+/// Represents the simulation context which exposes an interface of the
+/// simulation as well as helpers for rendering the simulation
 pub struct SnowflakeSimContext {
     sim: sim::SnowflakeSim,
     vertex_positions: Vec<f32>,
@@ -30,20 +33,18 @@ impl SnowflakeSimContext {
         }
     }
 
-    /**
-     * Set the water level of a cell
-     */
+    /// Set the water level of a cell
     pub fn set_cell(&mut self, x: usize, y: usize, water: f64) {
         self.sim.set_water(x, y, water);
     }
 
-    /**
-     * Step the Snowflake simulation one iteration
-     */
+    /// Step the Snowflake simulation one iteration
     pub fn step_simulation(&mut self) {
         self.sim.step();
     }
 
+    /// Create the vertex position buffer representing
+    /// the hexagonal simulation
     pub fn create_vertex_positions(&mut self) {
         let mut i = 0;
         for y in 0..self.sim.height {
@@ -69,18 +70,26 @@ impl SnowflakeSimContext {
         }
     }
 
+    /// Get the amount of vertices in the vertex position buffer
+    /// for the simulation
     pub fn get_vertex_count(&self) -> usize {
         return self.sim.width * self.sim.height * 2 * 4;
     }
 
+    /// Update the vertex color buffer based on the
+    /// current state of the simulation.
     pub fn update_vertex_colors(&mut self) {
         let mut i = 0;
         for y in 0..self.sim.height {
             for x in 0..self.sim.width {
-                let color = self.sim.get_water(x, y) as f32;
-                for _ in 0..4 * 4 * 3 {
-                    self.vertex_colors[i] = color;
-                    i += 1;
+                let water = self.sim.get_water(x, y) as f32;
+                let color = if water < COLOR_CUTTOFF { 0.0 } else { water };
+                for _ in 0..4 * 3 {
+                    self.vertex_colors[i + 0] = color;
+                    self.vertex_colors[i + 1] = color;
+                    self.vertex_colors[i + 2] = color;
+                    self.vertex_colors[i + 3] = 1.0;
+                    i += 4;
                 }
             }
         }
@@ -93,38 +102,40 @@ impl SnowflakeSimContext {
     pub fn get_vertex_colors(&self) -> js_sys::Float32Array {
         return js_sys::Float32Array::from(&self.vertex_colors[..]);
     }
-
-    /**
-     * Set the alpha (vapor diffusion) parameter of the
-     * Snowflake Simulation
-     */
+    /// Set the alpha (vapor diffusion) parameter of the Snowflake Simulation
     pub fn set_alpha(&mut self, value: f64) {
         self.sim.vapor_diffusion = value;
     }
 
-    /**
-     * Set the beta (background_vapor) parameter of the
-     * Snowflake Simulation
-     */
+    /// Set the beta (background_vapor) parameter of the Snowflake Simulation
     pub fn set_beta(&mut self, value: f64) {
         self.sim.background_vapor = value;
     }
 
-    /**
-     * Set the gamma (vapor_addition) parameter of the
-     * Snowflake Simulation
-     */
+    // Set the gamma (vapor_addition) parameter of the Snowflake Simulation
     pub fn set_gamma(&mut self, value: f64) {
         self.sim.vapor_addition = value;
     }
 }
 
-fn hex_corner(cx: f32, cy: f32, size: f32, i: usize) -> (f32, f32) {
+/// Get the floating point position of a hexagonal corner.
+///
+/// * `cy`, `cx` - position of the center of the hexagon
+/// * `size` - size of the hexagon, from center to corner
+/// * `i` - which corner to get the position for, between 0-5
+fn hex_corner(cx: f32, cy: f32, hex_size: f32, i: usize) -> (f32, f32) {
     let angle_deg = (60 * (i as isize) - 30) as f32;
     let angle_rad = 3.14159265 / 180.0 * angle_deg;
-    return (cx + size * angle_rad.cos(), cy + size * angle_rad.sin());
+    return (
+        cx + hex_size * angle_rad.cos(),
+        cy + hex_size * angle_rad.sin(),
+    );
 }
 
+/// Get the floating point position of the center of a hexagon
+///
+/// * `ix`, `iy` - integer position of the hexagon
+/// * `hex_size` - size of the hexagon, from center to corner
 fn hex_pixel_coord(ix: usize, iy: usize, hex_size: f32) -> (f32, f32) {
     let x: f32 = ix as f32;
     let y: f32 = iy as f32;

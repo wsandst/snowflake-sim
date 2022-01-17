@@ -9,13 +9,18 @@
     import fragShaderSource from './shaders/fragment.frag'
 
 	let canvas;
+	// WebGL internal state
 	let glCtx;
 	let shaderProgram;
 	let buffers;
 	let programInfo;
 	let vertexCount = 0;
+	// Drawing settings
 	let hexWidth;
 	let hexHeight
+	const color = [0.5, 0.82, 0.96, 1.0];
+	const scale = 2.75; //0.055 * (50 / hexWidth), [-2.35, -2, -6.0];
+	const offset = [-2.35, -2, -6.0]
 
 	onMount(() => {
 		canvas.width = 500;
@@ -34,6 +39,7 @@
 				uniformLocations: {
 				projectionMatrix: glCtx.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
 				modelViewMatrix: glCtx.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+				hexColor: glCtx.getUniformLocation(shaderProgram, 'hexColor'),
 			},
 		};
 
@@ -55,6 +61,7 @@
      * @param buffer vertex color buffer (r, g, b, a) * N
      */
     export function updateColorBuffer(buffer) {
+		console.log(buffer);
         render.updateBufferData(glCtx, buffers.color, buffer);
     }
 
@@ -65,7 +72,7 @@
 
 	export function renderFrame() {
 		// call again next time we can draw
-		render.draw(glCtx, programInfo, buffers, vertexCount, 0.055 * (50 / hexWidth), [-2.35, -2, -6.0]);
+		render.draw(glCtx, programInfo, buffers, vertexCount, scale / hexWidth, offset, color);
 	}
 
 </script>

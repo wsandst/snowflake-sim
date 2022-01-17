@@ -5,7 +5,7 @@ import * as mat4 from 'gl-matrix/mat4';
 import * as vec3 from 'gl-matrix/vec3';
 
 // Draw the scene
-export function draw(glCtx, programInfo, buffers, vertexCount, scale, offset) {
+export function draw(glCtx, programInfo, buffers, vertexCount, scale, offset, color) {
     glCtx.clearColor(0.0, 0.0, 0.0, 1.0);  
     glCtx.clearDepth(1.0);            
     glCtx.enable(glCtx.DEPTH_TEST);
@@ -94,6 +94,10 @@ export function draw(glCtx, programInfo, buffers, vertexCount, scale, offset) {
         programInfo.uniformLocations.modelViewMatrix,
         false,
         modelViewMatrix);
+    glCtx.uniform4fv(
+        programInfo.uniformLocations.hexColor,
+        color,
+    )
     {
         const offset = 0;
         glCtx.drawArrays(glCtx.TRIANGLES, offset, vertexCount);
