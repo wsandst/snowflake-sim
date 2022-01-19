@@ -9,14 +9,16 @@
 	let display;
 	let simRunning = false;
 	let iterationCount = 0;
-	const simSize = 100;
 
+	let simWidth = 100;
+	let simHeight = 100;
 	let simAlpha = 1.0;
 	let simBeta = 0.4;
 	let simGamma = 0.0001;
 	
 	onMount(() => {
 		// Start render loop
+		parseURLParams();
 		initSim();
 		simulationLoop();
 	});
@@ -44,12 +46,12 @@
 	}
 
 	function initSim() {
-		simCtx = snowflakeSimLib.SnowflakeSimContext.new(simSize, simSize, simAlpha, simBeta, simGamma);
-		simCtx.set_cell(simSize / 2 + 1, simSize / 2, 1.0);
+		simCtx = snowflakeSimLib.SnowflakeSimContext.new(simWidth, simHeight, simAlpha, simBeta, simGamma);
+		simCtx.set_cell(simWidth / 2 + 1, simHeight / 2, 1.0);
 		simCtx.step_simulation();
 		simCtx.create_vertex_positions();
 		simCtx.update_vertex_colors();
-		display.setSimSize(simSize, simSize);
+		display.setSimSize(simWidth, simHeight);
 		display.updatePositionBuffer(simCtx.get_vertex_positions());
 		display.updateColorBuffer(simCtx.get_vertex_colors());
 	}
@@ -65,6 +67,16 @@
 		let endTime = performance.now();
 		let elapsedTime = endTime - startTime
 		console.log(`Simulation took ${elapsedTime.toFixed(2)} ms (${(elapsedTime / 1000).toFixed(2)} ms)`);
+	}
+
+	function parseURLParams() {
+		const urlParams = new URLSearchParams(location.search);
+		if (urlParams.get("size") != null) {
+			let size = urlParams.get("size").split("x");
+			simWidth = size[0];
+			simHeight = size[1];
+		}
+			
 	}
 
 	$: if (simCtx) simCtx.set_alpha(simAlpha);

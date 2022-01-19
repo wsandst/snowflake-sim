@@ -75,7 +75,6 @@
 				|| canvas.height != canvas.getBoundingClientRect().height) {
 			updateCanvasSize();
 		}
-		console.log(canvas.height);
 		render.draw(glCtx, programInfo, buffers, vertexCount, offset, scale, color, [canvas.width, canvas.height]);
 	}
 	
