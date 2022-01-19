@@ -1,14 +1,19 @@
 <script>
 	import Display from './Display.svelte'
 	import { onMount } from 'svelte';
-import { xlink_attr } from 'svelte/internal';
-
+	import Fa from 'svelte-fa'
+	import { faPause, faPlay } from '@fortawesome/free-solid-svg-icons'
+	
 	export let snowflakeSimLib;
 	let simCtx;
 	let display;
 	let simRunning = false;
 	let iterationCount = 0;
-	const simSize = 400;
+	const simSize = 100;
+
+	let simAlpha = 1.0;
+	let simBeta = 0.4;
+	let simGamma = 0.0001;
 	
 	onMount(() => {
 		// Start render loop
@@ -29,7 +34,6 @@ import { xlink_attr } from 'svelte/internal';
 		simCtx.update_vertex_colors();
 		display.updateColorBuffer(simCtx.get_vertex_colors());
 		iterationCount += 1;
-		console.log(`Iteration ${iterationCount}`);
 	}
 
 	function toggleSim() {
@@ -40,8 +44,8 @@ import { xlink_attr } from 'svelte/internal';
 	}
 
 	function initSim() {
-		simCtx = snowflakeSimLib.SnowflakeSimContext.new(simSize, simSize, 1.0, 0.4, 0.0001);
-		simCtx.set_cell(simSize / 2, simSize / 2, 1.0);
+		simCtx = snowflakeSimLib.SnowflakeSimContext.new(simSize, simSize, simAlpha, simBeta, simGamma);
+		simCtx.set_cell(simSize / 2 + 1, simSize / 2, 1.0);
 		simCtx.step_simulation();
 		simCtx.create_vertex_positions();
 		simCtx.update_vertex_colors();
@@ -62,6 +66,10 @@ import { xlink_attr } from 'svelte/internal';
 		let elapsedTime = endTime - startTime
 		console.log(`Simulation took ${elapsedTime.toFixed(2)} ms (${(elapsedTime / 1000).toFixed(2)} ms)`);
 	}
+
+	$: if (simCtx) simCtx.set_alpha(simAlpha);
+	$: if (simCtx) simCtx.set_beta(simBeta);
+	$: if (simCtx) simCtx.set_gamma(simGamma);
 	
 </script>
 
@@ -71,12 +79,24 @@ import { xlink_attr } from 'svelte/internal';
 
 <main >
 	<div id="column">
+		<div id="siminfo">
+			<div>
+				Iteration: {iterationCount} 
+			</div>
+			<div>
+				<nobr>
+					α: <input type="number" bind:value={simAlpha}>    
+					β: <input type="number" bind:value={simBeta}>
+					γ: <input type="number" bind:value={simGamma}>
+				</nobr>
+			</div>
+		</div>
 		<Display bind:this={display}></Display>
 		<button on:click={toggleSim}>
 			{#if !simRunning}
-				Start Simulation
+				<Fa icon={faPlay} size="2x" color="white" />
 			{:else}
-				Stop Simulation
+				<Fa icon={faPause} size="2x" color="white" />
 			{/if}
 		</button>
 	</div>
@@ -101,8 +121,26 @@ import { xlink_attr } from 'svelte/internal';
 	}
 
 	button {
-		width: 120px;
-		height: 30px;
+		all: unset;
+		padding: 0.5em;
+	}
+
+	input[type='number'] {
+		all:unset;
+		border: 1px;
+		border-style: solid;
+		border-radius: 8px;
+		border-color: grey;
+		padding: 0.15em;
+		padding-left: 0.5em;
+		padding-right: 0.5em;
+		width: 55px;
+		-moz-appearance:textfield;
+	}
+
+	input::-webkit-outer-spin-button,
+	input::-webkit-inner-spin-button {
+		-webkit-appearance: none;
 	}
 
 	#column {
@@ -115,4 +153,16 @@ import { xlink_attr } from 'svelte/internal';
 		align-items: center;
 		gap: 10px;
 	}
+
+	#siminfo {
+		white-space: pre;
+        font-family: monospace;
+        padding-top: 0;
+        display: block;
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+
 </style>

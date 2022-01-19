@@ -6,7 +6,7 @@ This project implements a Snowflake Simulation using Reiters model. The underlyi
 * Add inputs for alpha, beta and gamma values to change in realtime
 * Test drawing a pixmap instead of hexagons for large sim resolutions
 * Experiment with saving 
-* Implement zooming into window
+* Fix zooming, add reset zoom button
 
 ## Resources
 [Reiters Model, A local cellular model for snow crystal growth](http://www.patarnott.com/pdf/SnowCrystalGrowth.pdf)  

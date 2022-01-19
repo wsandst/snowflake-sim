@@ -7,7 +7,6 @@
     // Import shader sources as strings
     import vertShaderSource from './shaders/vertex.vert'
     import fragShaderSource from './shaders/fragment.frag'
-import { sqrDist } from 'gl-matrix/cjs/vec3';
 
 	let canvas;
 	// WebGL internal state
@@ -24,8 +23,8 @@ import { sqrDist } from 'gl-matrix/cjs/vec3';
 	let scale = 1.0;
 
 	onMount(() => {
-		canvas.width = 500;
-		canvas.height = 500;
+		canvas.width = canvas.getBoundingClientRect().width;
+		canvas.height = canvas.getBoundingClientRect().height;
 		glCtx = canvas.getContext("webgl", {antialias: true});
         
         // Setup WebGL context
@@ -68,18 +67,30 @@ import { sqrDist } from 'gl-matrix/cjs/vec3';
 	export function setSimSize(width, height) {
 		hexWidth = width;
 		hexHeight = height;
-		scale = 490/(width*Math.sqrt(3));
-		offset = [5, 35];
+		updateCanvasSize();
 	}
 
 	export function renderFrame() {
-		// call again next time we can draw
-		render.draw(glCtx, programInfo, buffers, vertexCount, offset, scale, color);
+		if (canvas.width != canvas.getBoundingClientRect().width
+				|| canvas.height != canvas.getBoundingClientRect().height) {
+			updateCanvasSize();
+		}
+		console.log(canvas.height);
+		render.draw(glCtx, programInfo, buffers, vertexCount, offset, scale, color, [canvas.width, canvas.height]);
+	}
+	
+	function updateCanvasSize() {
+		// Update canvas dimensions if they changed
+		canvas.width = canvas.getBoundingClientRect().width;
+		canvas.height = canvas.getBoundingClientRect().height;
+		scale = (canvas.width-10)/(hexWidth*Math.sqrt(3));
+		offset = [5, 35];
+		glCtx.viewport(0, 0, canvas.width, canvas.height);
 	}
 
 	function zoom(event) {
 		let x = event.offsetX / scale + offset[0];
-		let y = (500 - event.offsetY) / scale + offset[1];
+		let y = (canvas.width - event.offsetY) / scale + offset[1];
 		let zoomScale = (event.deltaY * -0.001);
 		let newScale = scale + scale*zoomScale;
 		let scaleDelta = newScale - scale;
@@ -109,8 +120,24 @@ import { sqrDist } from 'gl-matrix/cjs/vec3';
 </canvas>
 
 <style>
-    canvas {
-		width: 500px;
-		height: 500px;
-	}
+    @media only screen and (max-width: 480px) {
+        canvas {
+            width: 340px;
+            height: 340px;
+        }
+    }
+
+	@media only screen and (min-width: 480px) {
+        canvas {
+            width: 500px;
+            height: 500px;
+        }
+    }
+
+	@media only screen and (min-width: 1020px) {
+        canvas {
+            width: 650px;
+            height: 650px;
+        }
+    }
 </style>

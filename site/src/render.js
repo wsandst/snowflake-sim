@@ -5,7 +5,7 @@ import * as mat4 from 'gl-matrix/mat4';
 import * as vec3 from 'gl-matrix/vec3';
 
 // Draw the scene
-export function draw(glCtx, programInfo, buffers, vertexCount, offset, scale, color) {
+export function draw(glCtx, programInfo, buffers, vertexCount, offset, scale, color, canvasSize) {
     glCtx.clearColor(0.0, 0.0, 0.0, 1.0);  
     glCtx.clearDepth(1.0);            
     glCtx.enable(glCtx.DEPTH_TEST);
@@ -23,7 +23,7 @@ export function draw(glCtx, programInfo, buffers, vertexCount, offset, scale, co
     const projectionMatrix = mat4.create();
 
 
-    mat4.ortho(projectionMatrix, 0, 500, 0, 500, zNear, zFar);
+    mat4.ortho(projectionMatrix, 0, canvasSize[0], 0, canvasSize[1], zNear, zFar);
 
     const modelViewMatrix = mat4.create();
 
