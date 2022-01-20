@@ -2,7 +2,7 @@
 	import Display from './Display.svelte'
 	import { onMount } from 'svelte';
 	import Fa from 'svelte-fa'
-	import { faPause, faPlay } from '@fortawesome/free-solid-svg-icons'
+	import { faPause, faPlay, faDownload } from '@fortawesome/free-solid-svg-icons'
 	
 	export let snowflakeSimLib;
 	let simCtx;
@@ -75,8 +75,7 @@
 			let size = urlParams.get("size").split("x");
 			simWidth = size[0];
 			simHeight = size[1];
-		}
-			
+		}	
 	}
 
 	$: if (simCtx) simCtx.set_alpha(simAlpha);
@@ -104,13 +103,18 @@
 			</div>
 		</div>
 		<Display bind:this={display}></Display>
+		<div>
 		<button on:click={toggleSim}>
 			{#if !simRunning}
-				<Fa icon={faPlay} size="2x" color="white" />
+				<Fa icon={faPlay} size="1.5x" color="white" />
 			{:else}
-				<Fa icon={faPause} size="2x" color="white" />
+				<Fa icon={faPause} size="1.5x" color="white" />
 			{/if}
 		</button>
+		<button on:click={display.screenshot()}>
+			<Fa icon={faDownload} size="1.5x" color="white" />
+		</button>
+		</div>
 	</div>
 </main>
 

@@ -77,6 +77,45 @@
 		}
 		render.draw(glCtx, programInfo, buffers, vertexCount, offset, scale, color, [canvas.width, canvas.height]);
 	}
+
+	/**
+	 * Take a high-res screenshot (2000x2000)
+	 * @return screenshot array
+	 */
+	export function screenshot() {
+		// Take a 2000x2000 screenshot
+		// Temporarily increase canvas size
+		canvas.width = 2000;
+		canvas.height = 2000;
+		scale = (canvas.width-10)/(hexWidth*Math.sqrt(3));
+		offset = [5, 35];
+		glCtx.viewport(0, 0, canvas.width, canvas.height);
+		render.draw(glCtx, programInfo, buffers, vertexCount, offset, scale, color, [canvas.width, canvas.height]);
+
+		var offscreenCanvas = document.createElement("canvas");
+		offscreenCanvas.width = canvas.width;
+		offscreenCanvas.height = canvas.height;
+
+		// Draw the OpenGL canvas to a 2D canvas
+		var ctx = offscreenCanvas.getContext("2d");
+		ctx.drawImage(canvas,0,0);
+
+		// Save as array
+		//let image = ctx.getImageData(0, 0, 2000, 2000);
+
+		// Save as URL, open in new tab
+		let url = offscreenCanvas.toDataURL('image/png');
+		var newTab = window.open();
+		newTab.document.body.innerHTML = 
+			'<img src="' 
+			+ url + 
+			'" width="1000px" height="1000px"></img>';
+			newTab.document.body.style.backgroundColor = "#202020"
+
+		// Restore the canvas
+		updateCanvasSize();
+		renderFrame();
+	}
 	
 	function updateCanvasSize() {
 		// Update canvas dimensions if they changed
