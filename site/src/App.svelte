@@ -30,6 +30,9 @@
 	let simAlpha = 1.0;
 	let simBeta = 0.4;
 	let simGamma = 0.0001;
+	let simAlphaRand = 0.3;
+	let simBetaRand = 0.0;
+	let simGammaRand = 0.0;
 	
 	onMount(() => {
 		// Start render loop
@@ -62,10 +65,8 @@
 
 	function initSim() {
 		simCtx = snowflakeSimLib.SnowflakeSimContext.new(simWidth, simHeight, simAlpha, simBeta, simGamma);
-		//simCtx.set_alpha_rand(0.3);
-		//simCtx.set_beta_rand(100);
-		//simCtx.set_gamma_rand(100);
 		simCtx.set_cell(simWidth / 2 + 1, simHeight / 2, 1.0);
+		simCtx.set_alpha_rand(0.3);
 		simCtx.create_vertex_positions();
 		simCtx.update_vertex_colors();
 		display.setSimSize(simWidth, simHeight);
@@ -98,6 +99,9 @@
 	$: if (simCtx) simCtx.set_alpha(simAlpha);
 	$: if (simCtx) simCtx.set_beta(simBeta);
 	$: if (simCtx) simCtx.set_gamma(simGamma);
+	$: if (simCtx) simCtx.set_alpha_rand(simAlphaRand);
+	$: if (simCtx) simCtx.set_beta_rand(simBetaRand);
+	$: if (simCtx) simCtx.set_gamma_rand(simGammaRand);
 	
 </script>
 
@@ -113,22 +117,23 @@
 			</div>
 			<div>
 				<nobr>
-					α: <input type="number" bind:value={simAlpha}>    
-					β: <input type="number" bind:value={simBeta}>
-					γ: <input type="number" bind:value={simGamma}>
+					α: <input type="number" bind:value={simAlpha} title="Alpha (Vapor Addition) parameter">    
+					β: <input type="number" bind:value={simBeta} title="Beta (Background Vapor) parameter">
+					γ: <input type="number" bind:value={simGamma} title="Gamma (Vapor Diffusion) parameter">
+					αr: <input type="number" bind:value={simAlphaRand} title="Alpha (Vapor Addition) randomization parameter, in percent">   
 				</nobr>
 			</div>
 		</div>
 		<Display bind:this={display}></Display>
 		<div>
-		<button on:click={toggleSim}>
+		<button on:click={toggleSim} title={!simRunning ? "Start Simulation" : "Pause Simulation"}>
 			{#if !simRunning}
 				<Fa icon={faPlay} size="1.5x" color="white" />
 			{:else}
 				<Fa icon={faPause} size="1.5x" color="white" />
 			{/if}
 		</button>
-		<button on:click={display.screenshot()}>
+		<button on:click={display.screenshot()} title="Download image of Simulation">
 			<Fa icon={faDownload} size="1.5x" color="white" />
 		</button>
 		</div>
