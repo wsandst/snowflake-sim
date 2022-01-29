@@ -102,6 +102,7 @@ impl SnowflakeSimContext {
     pub fn get_vertex_colors(&self) -> js_sys::Float32Array {
         return js_sys::Float32Array::from(&self.vertex_colors[..]);
     }
+    
     /// Set the alpha (vapor diffusion) parameter of the Snowflake Simulation
     pub fn set_alpha(&mut self, value: f64) {
         self.sim.vapor_diffusion = value;
@@ -112,9 +113,27 @@ impl SnowflakeSimContext {
         self.sim.background_vapor = value;
     }
 
-    // Set the gamma (vapor_addition) parameter of the Snowflake Simulation
+    /// Set the gamma (vapor_addition) parameter of the Snowflake Simulation
     pub fn set_gamma(&mut self, value: f64) {
         self.sim.vapor_addition = value;
+    }
+
+    /// Set the alpha randomization value of the Snowflake Simulation
+    /// * `range` - the percentage range of the random change of the parameter
+    pub fn set_alpha_rand(&mut self, range: f64) {
+        self.sim.vapor_diffusion_rand = range;
+    }
+
+    /// Set the beta randomization value of the Snowflake Simulation
+    /// * `range` - the percentage range of the random change of the parameter
+    pub fn set_beta_rand(&mut self, range: f64) {
+        self.sim.background_vapor_rand = range;
+    }
+
+    /// Set the gamma randomization value of the Snowflake Simulation
+    /// * `range` - the percentage range of the random change of the parameter
+    pub fn set_gamma_rand(&mut self, range: f64) {
+        self.sim.vapor_addition_rand = range;
     }
 }
 

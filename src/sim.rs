@@ -1,3 +1,8 @@
+use oorandom::Rand64;
+
+static RANDOM_BUFFER_SIZE: usize = 10000;
+static RAND_SEED: u128 = 34917983469832;
+
 /// Represents a single hexagonal cell of the simulation
 #[derive(Clone, Copy, Debug)]
 struct Cell {
@@ -20,18 +25,27 @@ pub struct SnowflakeSim {
     rwidth: usize,
     rheight: usize,
 
+    // Random buffer
+    random_buffer: Vec<f64>,
+    random_buffer_index: usize,
+
     // Simulation parameters
     /// Alpha
-    pub background_vapor: f64,
-    /// Beta
-    pub vapor_addition: f64,
-    /// Gamma
     pub vapor_diffusion: f64,
+    /// Beta
+    pub background_vapor: f64,
+    /// Gamma
+    pub vapor_addition: f64,
+    // Randomization of simulation parameters in percent
+    pub background_vapor_rand : f64,
+    pub vapor_addition_rand : f64,
+    pub vapor_diffusion_rand : f64,
+    
 }
 
 impl SnowflakeSim {
     pub fn new(width: usize, height: usize, alpha: f64, beta: f64, gamma: f64) -> SnowflakeSim {
-        SnowflakeSim {
+        let mut sim = SnowflakeSim {
             current: vec![
                 Cell {
                     water: beta,
@@ -53,7 +67,19 @@ impl SnowflakeSim {
             vapor_diffusion: alpha,
             background_vapor: beta,
             vapor_addition: gamma,
+            vapor_diffusion_rand: 0.0,
+            background_vapor_rand: 0.0,
+            vapor_addition_rand: 0.0,
+            random_buffer: vec![0.0; RANDOM_BUFFER_SIZE],
+            random_buffer_index: 0,
+        };
+        // Setup the random buffer which is used to improve performance of
+        // random numbers
+        let mut rand = Rand64::new(RAND_SEED);
+        for i in 0..sim.random_buffer.len() {
+            sim.random_buffer[i] = rand.rand_float();
         }
+        return sim;
     }
 
     /// Set the water level of a cell. Useful for initial setup of the
@@ -78,8 +104,53 @@ impl SnowflakeSim {
         }
     }
 
-    /// Set the water level of a cell. Useful for initial setup of the
-    /// seed crystal.
+    fn get_background_vapor(&mut self) -> f64 {
+        if self.background_vapor_rand > 0.0 {
+            return self.background_vapor * self.get_random_factor(self.background_vapor_rand);
+        }
+        else {
+            return self.background_vapor;
+        }
+    }
+
+    fn get_vapor_diffusion(&mut self) -> f64 {
+        if self.vapor_diffusion_rand > 0.0 {
+            return self.vapor_diffusion * self.get_random_factor(self.vapor_diffusion_rand);
+        }
+        else {
+            return self.vapor_diffusion;
+        }
+    }
+
+    fn get_vapor_addition(&mut self) -> f64 {
+        if self.vapor_addition_rand > 0.0 {
+            // Randomize by a factor of the random vapor addition param
+            return self.vapor_addition * self.get_random_factor(self.vapor_addition_rand);
+        }
+        else {
+            return self.vapor_addition;
+        }
+    }
+
+    /// Get the next random f64 from the random buffer.
+    /// 
+    /// Wraps around after `RANDOM_BUFFER_SIZE` has been exceeded
+    fn get_next_rand(&mut self) -> f64 {
+        let val = self.random_buffer[self.random_buffer_index % RANDOM_BUFFER_SIZE];
+        self.random_buffer_index += 1;
+        return val;
+    }
+
+    /// Get a random number mapped between (1 - rand_range, 1 + rand_range),
+    /// with negative values clamped to 0.
+    fn get_random_factor(&mut self, rand_range : f64) -> f64 {
+        // Random number mapped between (1 - rand_range, 1 + rand_range)
+        // Clamp to 0 to prevent negative values
+        return (0.0 as f64).max(1.0 + rand_range * (1.0 - self.get_next_rand() * 2.0));
+    }
+
+
+    /// Get the water level of a cell.
     pub fn get_water(&mut self, mut x: usize, mut y: usize) -> f64 {
         // Adjust for padding manually
         x = x + 1;
@@ -98,12 +169,12 @@ impl SnowflakeSim {
 
         // Loop over edge cells and introduce water to the system
         for y in 1..self.height + 1 {
-            self.next[y * self.rwidth + 1].water = self.background_vapor;
-            self.next[y * self.rwidth + self.width].water = self.background_vapor;
+            self.next[y * self.rwidth + 1].water = self.get_background_vapor();
+            self.next[y * self.rwidth + self.width].water = self.get_background_vapor();
         }
         for x in 1..self.width + 1 {
-            self.next[1 * self.rwidth + x].water = self.background_vapor;
-            self.next[self.height * self.rwidth + x].water = self.background_vapor;
+            self.next[1 * self.rwidth + x].water = self.get_background_vapor();
+            self.next[self.height * self.rwidth + x].water = self.get_background_vapor();
         }
 
         // Swap current and next
@@ -124,7 +195,7 @@ impl SnowflakeSim {
         let mut diff_nonparticip: f64 = 0.0;
 
         if cell.receptive {
-            diff_nonparticip = cell.water + self.vapor_addition;
+            diff_nonparticip = cell.water + self.get_vapor_addition();
         } else {
             diff_particip = cell.water;
         }
@@ -138,15 +209,12 @@ impl SnowflakeSim {
             if !neighbour.receptive {
                 water_avg += neighbour.water;
             }
-            //if cell.receptive {
-            //    self.next[((ny) as usize) * self.rwidth + nx as usize].water = 1.0;
-            //}
         }
 
         water_avg = water_avg / 6.0;
 
         // Diffuse
-        diff_particip = diff_particip + (self.vapor_diffusion / 2.0) * (water_avg - diff_particip);
+        diff_particip = diff_particip + (self.get_vapor_diffusion() / 2.0) * (water_avg - diff_particip);
 
         let started_frozen = next_cell.water >= 1.0;
         next_cell.water = diff_particip + diff_nonparticip;

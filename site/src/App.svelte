@@ -1,4 +1,19 @@
 <script>
+	/*
+		Todo:
+			Implement randomization options
+				Implement fast random support in Rust
+				Implement controls of random in the interface (three new inputs)
+			Implement reset button
+			Fix zoom, add either panning or allow for adding of ice by mouse
+			Improve interface
+			Add a URL representation of a snowflake, which contains all parameters
+			of the simulation. We then need the ability to "play back" these parameters.
+				We do this mostly through Rust I think. Record every parameter change in
+				some structure, then allow playback from the same structure. Perhaps
+				we do run-length encoding and then convert to characters. Convert
+				to a compact array of some kind, then to base64
+	*/
 	import Display from './Display.svelte'
 	import { onMount } from 'svelte';
 	import Fa from 'svelte-fa'
@@ -47,8 +62,10 @@
 
 	function initSim() {
 		simCtx = snowflakeSimLib.SnowflakeSimContext.new(simWidth, simHeight, simAlpha, simBeta, simGamma);
+		//simCtx.set_alpha_rand(0.3);
+		//simCtx.set_beta_rand(100);
+		//simCtx.set_gamma_rand(100);
 		simCtx.set_cell(simWidth / 2 + 1, simHeight / 2, 1.0);
-		simCtx.step_simulation();
 		simCtx.create_vertex_positions();
 		simCtx.update_vertex_colors();
 		display.setSimSize(simWidth, simHeight);
