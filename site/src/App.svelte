@@ -17,7 +17,7 @@
 	import Display from './Display.svelte'
 	import { onMount } from 'svelte';
 	import Fa from 'svelte-fa'
-	import { faPause, faPlay, faDownload } from '@fortawesome/free-solid-svg-icons'
+	import { faPause, faPlay, faDownload, faUndo } from '@fortawesome/free-solid-svg-icons'
 	
 	export let snowflakeSimLib;
 	let simCtx;
@@ -30,7 +30,7 @@
 	let simAlpha = 1.0;
 	let simBeta = 0.4;
 	let simGamma = 0.0001;
-	let simAlphaRand = 0.3;
+	let simAlphaRand = 0.0;
 	let simBetaRand = 0.0;
 	let simGammaRand = 0.0;
 	
@@ -38,7 +38,6 @@
 		// Start render loop
 		parseURLParams();
 		initSim();
-		simulationLoop();
 	});
 
 	function simulationLoop() {
@@ -64,6 +63,7 @@
 	}
 
 	function initSim() {
+		simRunning = false;
 		simCtx = snowflakeSimLib.SnowflakeSimContext.new(simWidth, simHeight, simAlpha, simBeta, simGamma);
 		simCtx.set_cell(simWidth / 2 + 1, simHeight / 2, 1.0);
 		simCtx.set_alpha_rand(0.3);
@@ -72,6 +72,7 @@
 		display.setSimSize(simWidth, simHeight);
 		display.updatePositionBuffer(simCtx.get_vertex_positions());
 		display.updateColorBuffer(simCtx.get_vertex_colors());
+		display.renderFrame();
 	}
 
 	function timeSim() {
@@ -112,30 +113,31 @@
 <main >
 	<div id="column">
 		<div id="siminfo">
-			<div>
+			<div style="margin-bottom: 0.3em">
 				Iteration: {iterationCount} 
 			</div>
-			<div>
-				<nobr>
-					α: <input type="number" bind:value={simAlpha} title="Alpha (Vapor Addition) parameter">    
-					β: <input type="number" bind:value={simBeta} title="Beta (Background Vapor) parameter">
-					γ: <input type="number" bind:value={simGamma} title="Gamma (Vapor Diffusion) parameter">
-					αr: <input type="number" bind:value={simAlphaRand} title="Alpha (Vapor Addition) randomization parameter, in percent">   
-				</nobr>
+			<div id="paraminputs">
+<p>&nbsp;α:</p> <input type="number" bind:value={simAlpha} title="Alpha (Vapor Addition) parameter">    
+<p>&nbsp;β:</p> <input type="number" bind:value={simBeta} title="Beta (Background Vapor) parameter">
+<p>&nbsp;γ:</p> <input type="number" bind:value={simGamma} title="Gamma (Vapor Diffusion) parameter">
+<p>αr:</p> <input type="number" bind:value={simAlphaRand} title="Alpha (Vapor Addition) randomization parameter, in percent">   
 			</div>
 		</div>
 		<Display bind:this={display}></Display>
-		<div>
-		<button on:click={toggleSim} title={!simRunning ? "Start Simulation" : "Pause Simulation"}>
-			{#if !simRunning}
-				<Fa icon={faPlay} size="1.5x" color="white" />
-			{:else}
-				<Fa icon={faPause} size="1.5x" color="white" />
-			{/if}
-		</button>
-		<button on:click={display.screenshot()} title="Download image of Simulation">
-			<Fa icon={faDownload} size="1.5x" color="white" />
-		</button>
+		<div id="controls">
+			<button on:click={toggleSim} title={!simRunning ? "Start Simulation" : "Pause Simulation"}>
+				{#if !simRunning}
+					<Fa icon={faPlay} size="1.5x" color="white" />
+				{:else}
+					<Fa icon={faPause} size="1.5x" color="white" />
+				{/if}
+			</button>
+			<button on:click={initSim} title="Reset Simulation">
+				<Fa icon={faUndo} size="1.5x" color="white" />
+			</button>
+			<button on:click={display.screenshot()} title="Download image of Simulation">
+				<Fa icon={faDownload} size="1.5x" color="white" />
+			</button>
 		</div>
 	</div>
 </main>
@@ -182,14 +184,13 @@
 	}
 
 	#column {
-		width: 50%;
 		height: 100%;
 		margin: 0 auto;
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		gap: 10px;
+		gap: 5px;
 	}
 
 	#siminfo {
@@ -200,7 +201,51 @@
 		text-align: center;
 		display: flex;
 		flex-direction: column;
-		gap: 10px;
 	}
 
+	#paraminputs {
+		display: flex;  
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		align-content: center;
+		text-align: center;
+		flex-wrap: wrap;
+	}
+
+	#paraminputs p {
+		margin-left: 1em;
+		margin-right: 0.3em;
+		margin-top: 0.6em;
+		margin-bottom: 0.6em;
+	}
+
+	#controls {
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+		width: 100%;
+		margin-left: 1.5em;
+	}
+
+	@media only screen and (max-width: 480px) {
+        #column {
+            width: 340px;
+        }
+		#paraminputs {
+			width: 230px;
+		}
+    }
+
+	@media only screen and (min-width: 480px) {
+        #column {
+            width: 500px;
+        }
+    }
+
+	@media only screen and (min-width: 1020px) {
+        #column {
+            width: 650px;
+        }
+    }
 </style>
