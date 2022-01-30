@@ -75,10 +75,7 @@ impl SnowflakeSim {
         };
         // Setup the random buffer which is used to improve performance of
         // random numbers
-        let mut rand = Rand64::new(RAND_SEED);
-        for i in 0..sim.random_buffer.len() {
-            sim.random_buffer[i] = rand.rand_float();
-        }
+        sim.set_random_seed(RAND_SEED);
         return sim;
     }
 
@@ -101,6 +98,13 @@ impl SnowflakeSim {
                     self.next[(ny as usize) * self.rwidth + (nx as usize)].receptive = true;
                 }
             }
+        }
+    }
+
+    pub fn set_random_seed(&mut self, seed : u128) {
+        let mut rand = Rand64::new(seed);
+        for i in 0..self.random_buffer.len() {
+            self.random_buffer[i] = rand.rand_float();
         }
     }
 

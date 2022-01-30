@@ -135,6 +135,11 @@ impl SnowflakeSimContext {
     pub fn set_gamma_rand(&mut self, range: f64) {
         self.sim.vapor_addition_rand = range;
     }
+
+    /// Set the random seed of the simulation
+    pub fn set_random_seed(&mut self, seed : u64) {
+        self.sim.set_random_seed(seed as u128);
+    }
 }
 
 /// Get the floating point position of a hexagonal corner.

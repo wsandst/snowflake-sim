@@ -30,9 +30,10 @@
 	let simAlpha = 1.0;
 	let simBeta = 0.4;
 	let simGamma = 0.0001;
-	let simAlphaRand = 0.0;
+	let simAlphaRand = 0.3;
 	let simBetaRand = 0.0;
 	let simGammaRand = 0.0;
+	let simRandSeed = BigInt(34917983469832);
 	
 	onMount(() => {
 		// Start render loop
@@ -65,6 +66,7 @@
 	function initSim() {
 		simRunning = false;
 		simCtx = snowflakeSimLib.SnowflakeSimContext.new(simWidth, simHeight, simAlpha, simBeta, simGamma);
+		simCtx.set_random_seed(simRandSeed);
 		simCtx.set_cell(simWidth / 2 + 1, simHeight / 2, 1.0);
 		simCtx.set_alpha_rand(0.3);
 		simCtx.create_vertex_positions();
@@ -94,6 +96,9 @@
 			let size = urlParams.get("size").split("x");
 			simWidth = size[0];
 			simHeight = size[1];
+		}	
+		if (urlParams.get("seed") != null) {
+			simRandSeed = urlParams.get("seed");
 		}	
 	}
 
