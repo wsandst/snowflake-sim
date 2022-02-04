@@ -17,12 +17,13 @@
 	import Display from './Display.svelte'
 	import { onMount } from 'svelte';
 	import Fa from 'svelte-fa'
-	import { faPause, faPlay, faDownload, faUndo } from '@fortawesome/free-solid-svg-icons'
+	import { faPause, faPlay, faDownload, faUndo, faBolt } from '@fortawesome/free-solid-svg-icons'
 	
 	export let snowflakeSimLib;
 	let simCtx;
 	let display;
 	let simRunning = false;
+	let simSpeedup = false;
 	let iterationCount = 0;
 
 	let simWidth = 100;
@@ -42,8 +43,19 @@
 	});
 
 	function simulationLoop() {
+		if (!simSpeedup) {
+			stepSim();
+		}
+		else {
+			// Speedup, run as much as possible for one frame
+			const start = performance.now();
+			let delta = 0;
+			while (delta <= (1.0/60.0)*1000) {
+				stepSim();
+				delta = (performance.now() - start);
+			}
+		}
 		display.renderFrame();
-		stepSim();
 		if (simRunning) {
 			requestAnimationFrame(simulationLoop);
 		}
@@ -61,6 +73,10 @@
 		if (simRunning) {
 			requestAnimationFrame(simulationLoop);
 		}
+	}
+
+	function toggleSpeedup() {
+		simSpeedup = !simSpeedup;
 	}
 
 	function initSim() {
@@ -131,11 +147,10 @@
 		<Display bind:this={display}></Display>
 		<div id="controls">
 			<button on:click={toggleSim} title={!simRunning ? "Start Simulation" : "Pause Simulation"}>
-				{#if !simRunning}
-					<Fa icon={faPlay} size="1.5x" color="white" />
-				{:else}
-					<Fa icon={faPause} size="1.5x" color="white" />
-				{/if}
+				<Fa icon={!simRunning ? faPlay : faPause } size="1.5x" color="white" />
+			</button>
+			<button on:click={toggleSpeedup} title={!simSpeedup ? "Speedup Simulation" : "Slow down Simulation"}>
+				<Fa icon={faBolt} size="1.5x" color={simSpeedup ? "white" : "grey"} />
 			</button>
 			<button on:click={initSim} title="Reset Simulation">
 				<Fa icon={faUndo} size="1.5x" color="white" />
