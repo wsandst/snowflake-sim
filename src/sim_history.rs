@@ -1,13 +1,20 @@
 use super::sim;
 
+use serde::{Serialize, Deserialize};
+use flate2::write::ZlibEncoder;
+use flate2::write::ZlibDecoder;
+use std::io::Write;
+
 /// Track the history of an attribute
+#[derive(Serialize, Deserialize)]
 struct AttribHistory {
-    history : Vec<(u16, f64)>
+    history : Vec<(u16, f32)>
 }
 
 /// Track the history of a Snowflake Simulation
 /// and allow for playback as well as
 /// saving the history state as a string.
+#[derive(Serialize, Deserialize)]
 pub struct SimStateHistory {
     alpha_history : AttribHistory,
     beta_history: AttribHistory,
@@ -26,8 +33,8 @@ impl AttribHistory {
     /// Update the attribute for a certain time tick
     fn add(&mut self, tick: usize, value: f64) {
         // Only add to history if there was a change
-        if self.history.len() == 0 || self.history.last().unwrap().1 != value {
-            self.history.push((tick as u16, value));
+        if self.history.len() == 0 || self.history.last().unwrap().1 != (value as f32) {
+            self.history.push((tick as u16, value as f32));
         }
     }
 
@@ -46,7 +53,7 @@ impl AttribHistory {
         // 1. If there is only one point, it will be returned
         // 2. If the time is past the last point, the last point will
         //    be returned
-        return first.1;
+        return first.1 as f64;
     }
 }
 
@@ -112,6 +119,31 @@ impl SimStateHistory {
         sim.vapor_addition = self.gamma_history.get(count) as f64;
         sim.vapor_addition_rand = self.alpha_rand_history.get(count) as f64;
     }
+
+    /// Serialize the sim state history to a base64 string,
+    /// useful in URLs
+    pub fn serialize_to_str(&self) -> String {
+        // Serialize
+        let serialized_bytes = bincode::serialize(&self).unwrap();
+        // Compress using flate2
+        let mut encoder = ZlibEncoder::new(Vec::new(), flate2::Compression::best());
+        encoder.write_all(&serialized_bytes).unwrap();
+        let compressed_bytes = encoder.finish().unwrap();
+        // Encode as base64 string
+        return base64::encode_config(compressed_bytes, base64::URL_SAFE_NO_PAD);
+    }
+
+    /// Deserialize a base64 string into a sim state history
+    pub fn deserialize_from_str(string : String) -> SimStateHistory {
+        // Decode base64 string
+        let compressed_bytes = base64::decode_config(string, base64::URL_SAFE_NO_PAD).unwrap();
+        // Decompress
+        let mut decoder = ZlibDecoder::new(Vec::<u8>::new());
+        decoder.write_all(&compressed_bytes).unwrap();
+        let serialized_bytes = decoder.finish().unwrap();
+        // Deserialize
+        return bincode::deserialize(&serialized_bytes).unwrap();
+    }
 }
 
 #[cfg(test)]
@@ -165,7 +197,7 @@ mod tests {
             for x in 0..GRID_WIDTH {
                 let water1 = sim1.get_water(x, y);
                 let water2 = sim2.get_water(x, y);
-                if (water1 - water2).abs() > f64::EPSILON {
+                if (water1 - water2).abs() > 0.00001 {
                     return false;
                 }
             }

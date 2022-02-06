@@ -15,6 +15,7 @@ static COLOR_CUTTOFF: f32 = 0.6;
 /// simulation as well as helpers for rendering the simulation
 pub struct SnowflakeSimContext {
     sim: sim::SnowflakeSim,
+    sim_history: sim_history::SimStateHistory,
     vertex_positions: Vec<f32>,
     vertex_colors: Vec<f32>,
 }
@@ -32,6 +33,7 @@ impl SnowflakeSimContext {
             sim: sim::SnowflakeSim::new(width, height, alpha, beta, gamma),
             vertex_positions: vec![0.0; width * height * 2 * 4 * 3],
             vertex_colors: vec![0.0; width * height * 4 * 4 * 3],
+            sim_history: sim_history::SimStateHistory::new()
         }
     }
 
@@ -42,8 +44,37 @@ impl SnowflakeSimContext {
 
     /// Step the Snowflake simulation one iteration
     pub fn step_simulation(&mut self) {
+        if self.sim.iteration_count == 0 {
+            // Initate simulation history tracking on first iteration
+            self.sim_history.init_tracking(&self.sim);
+        }
+
         self.sim.step();
+
+        self.sim_history.track_tick(&mut self.sim);
     }
+
+    // Playback related
+
+    /// Initiate the playback of a simulation
+    pub fn init_playback(&mut self, sim_repr_str: String) {
+        self.sim_history = sim_history::SimStateHistory::deserialize_from_str(sim_repr_str);
+        self.sim = self.sim_history.init_playback();
+    }
+
+    /// Step the Snowflake simulation one iteration based on the playback
+    pub fn playback_simulation(&mut self) {
+        self.sim.step();
+        self.sim_history.playback_tick(&mut self.sim);
+    }
+
+    /// Get a string representation of the simulation 
+    /// which allows for playback.
+    pub fn get_simulation_string_repr(&self) -> String {
+        return self.sim_history.serialize_to_str();
+    }
+
+    // Graphics related
 
     /// Create the vertex position buffer representing
     /// the hexagonal simulation
@@ -105,6 +136,8 @@ impl SnowflakeSimContext {
         return js_sys::Float32Array::from(&self.vertex_colors[..]);
     }
     
+    // Getters and setters for simulation parameters
+
     /// Set the alpha (vapor diffusion) parameter of the Snowflake Simulation
     pub fn set_alpha(&mut self, value: f64) {
         self.sim.vapor_diffusion = value;

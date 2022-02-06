@@ -14,6 +14,11 @@ default = ["console_error_panic_hook"]
 wasm-bindgen = "0.2.63"
 js-sys = "0.3.45"
 oorandom = "11.1.3"
+# Serialization
+serde = { version = "1.0.126", features = ["derive"] }
+bincode = "1.3.3"
+base64 = "0.13.0"
+flate2 = "1.0.20"
 
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
