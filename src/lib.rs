@@ -1,5 +1,7 @@
+#![feature(test)]
 use wasm_bindgen::prelude::*;
 mod sim;
+mod sim_history;
 
 /// Hexagon size for creating vertices. This should be
 /// 1.0 and then rescaled in the view, not here in the simulation
@@ -138,7 +140,7 @@ impl SnowflakeSimContext {
 
     /// Set the random seed of the simulation
     pub fn set_random_seed(&mut self, seed : u64) {
-        self.sim.set_random_seed(seed as u128);
+        self.sim.set_random_seed(seed);
     }
 }
 

@@ -1,11 +1,11 @@
 use oorandom::Rand64;
 
 static RANDOM_BUFFER_SIZE: usize = 10000;
-static RAND_SEED: u128 = 34917983469832;
+static RAND_SEED: u64 = 34917983469832;
 
 /// Represents a single hexagonal cell of the simulation
 #[derive(Clone, Copy, Debug)]
-struct Cell {
+pub struct Cell {
     water: f64,
     receptive: bool,
 }
@@ -17,7 +17,7 @@ struct Cell {
 #[derive(Debug)]
 pub struct SnowflakeSim {
     // Simulation state
-    current: Vec<Cell>,
+    pub current: Vec<Cell>,
     next: Vec<Cell>,
     pub width: usize,
     pub height: usize,
@@ -40,7 +40,8 @@ pub struct SnowflakeSim {
     pub background_vapor_rand : f64,
     pub vapor_addition_rand : f64,
     pub vapor_diffusion_rand : f64,
-    
+    pub seed : u64,
+    pub iteration_count : usize,
 }
 
 impl SnowflakeSim {
@@ -72,6 +73,8 @@ impl SnowflakeSim {
             vapor_addition_rand: 0.0,
             random_buffer: vec![0.0; RANDOM_BUFFER_SIZE],
             random_buffer_index: 0,
+            seed : 0,
+            iteration_count: 0,
         };
         // Setup the random buffer which is used to improve performance of
         // random numbers
@@ -101,11 +104,12 @@ impl SnowflakeSim {
         }
     }
 
-    pub fn set_random_seed(&mut self, seed : u128) {
-        let mut rand = Rand64::new(seed);
+    pub fn set_random_seed(&mut self, seed : u64) {
+        let mut rand = Rand64::new(seed as u128);
         for i in 0..self.random_buffer.len() {
             self.random_buffer[i] = rand.rand_float();
         }
+        self.seed = seed;
     }
 
     fn get_background_vapor(&mut self) -> f64 {
@@ -155,7 +159,7 @@ impl SnowflakeSim {
 
 
     /// Get the water level of a cell.
-    pub fn get_water(&mut self, mut x: usize, mut y: usize) -> f64 {
+    pub fn get_water(&self, mut x: usize, mut y: usize) -> f64 {
         // Adjust for padding manually
         x = x + 1;
         y = y + 1;
@@ -183,6 +187,7 @@ impl SnowflakeSim {
 
         // Swap current and next
         std::mem::swap(&mut self.current, &mut self.next);
+        self.iteration_count += 1;
     }
 
     /// Is a position within bounds of the simulation?
@@ -272,4 +277,34 @@ fn get_neighbours(x: isize, y: isize) -> [(isize, isize); 6] {
             (x + 1, y + 1),
         ]
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    static GRID_WIDTH: usize = 150;
+    static GRID_HEIGHT: usize = 150;
+    static ITERATIONS: usize = 200;
+
+    #[test]
+    fn test_sim() {
+        let mut simulation = SnowflakeSim::new(GRID_WIDTH, GRID_HEIGHT, 1.0, 0.4, 0.0001);
+        simulation.set_water(GRID_WIDTH / 2 - 1, GRID_HEIGHT / 2 - 1, 1.0);
+
+        use std::time::Instant;
+        let now = Instant::now();
+
+        for _ in 0..ITERATIONS {
+            simulation.step();
+        }
+
+        let elapsed = now.elapsed();
+        println!(
+            "Simulation took {:.3?} for {} iterations ({:.3?} per iteration)",
+            elapsed,
+            ITERATIONS,
+            elapsed.div_f64(ITERATIONS as f64)
+        );
+    }
 }
