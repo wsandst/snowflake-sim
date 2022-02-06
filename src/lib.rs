@@ -44,17 +44,19 @@ impl SnowflakeSimContext {
 
     /// Step the Snowflake simulation one iteration
     pub fn step_simulation(&mut self) {
-        if self.sim.iteration_count == 0 {
-            // Initate simulation history tracking on first iteration
-            self.sim_history.init_tracking(&self.sim);
-        }
-
         self.sim.step();
 
         self.sim_history.track_tick(&mut self.sim);
     }
 
     // Playback related
+
+    pub fn init_tracking(&mut self) {
+        if self.sim.iteration_count == 0 {
+            // Initate simulation history tracking on first iteration
+            self.sim_history.init_tracking(&self.sim);
+        }
+    }
 
     /// Initiate the playback of a simulation
     pub fn init_playback(&mut self, sim_repr_str: String) {
@@ -63,7 +65,7 @@ impl SnowflakeSimContext {
     }
 
     /// Step the Snowflake simulation one iteration based on the playback
-    pub fn playback_simulation(&mut self) {
+    pub fn step_simulation_playback(&mut self) {
         self.sim.step();
         self.sim_history.playback_tick(&mut self.sim);
     }
@@ -146,6 +148,10 @@ impl SnowflakeSimContext {
     /// Set the beta (background_vapor) parameter of the Snowflake Simulation
     pub fn set_beta(&mut self, value: f64) {
         self.sim.background_vapor = value;
+        if self.sim.iteration_count == 0 { 
+            // We need to update the starting background vapor
+            self.sim.fill_starting_background_vapor();
+        }
     }
 
     /// Set the gamma (vapor_addition) parameter of the Snowflake Simulation
@@ -174,6 +180,26 @@ impl SnowflakeSimContext {
     /// Set the random seed of the simulation
     pub fn set_random_seed(&mut self, seed : u64) {
         self.sim.set_random_seed(seed);
+    }
+
+    pub fn get_alpha(&self) -> f64 {
+        return self.sim.vapor_diffusion;
+    }
+
+    pub fn get_beta(&self) -> f64 {
+        return self.sim.background_vapor;
+    }
+
+    pub fn get_gamma(&self) -> f64 {
+        return self.sim.vapor_addition;
+    }
+
+    pub fn get_alpha_rand(&self) -> f64 {
+        return self.sim.vapor_diffusion_rand;
+    }
+
+    pub fn get_seed(&self) -> u64 {
+        return self.sim.seed;
     }
 }
 

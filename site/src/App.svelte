@@ -17,13 +17,14 @@
 	import Display from './Display.svelte'
 	import { onMount } from 'svelte';
 	import Fa from 'svelte-fa'
-	import { faPause, faPlay, faDownload, faUndo, faBolt } from '@fortawesome/free-solid-svg-icons'
+	import { faPause, faPlay, faDownload, faUndo, faBolt, faShare } from '@fortawesome/free-solid-svg-icons'
 	
 	export let snowflakeSimLib;
 	let simCtx;
 	let display;
 	let simRunning = false;
 	let simSpeedup = false;
+	let runningPlayback = false;
 	let iterationCount = 0;
 
 	let simWidth = 100;
@@ -31,18 +32,23 @@
 	let simAlpha = 1.0;
 	let simBeta = 0.4;
 	let simGamma = 0.0001;
-	let simAlphaRand = 0.3;
+	let simAlphaRand = 0.0;
 	let simBetaRand = 0.0;
 	let simGammaRand = 0.0;
 	let simRandSeed = BigInt(34917983469832);
+	let simPreset = null;
 	
 	onMount(() => {
 		// Start render loop
 		parseURLParams();
 		initSim();
+		//timeSim();
 	});
 
 	function simulationLoop() {
+		if (iterationCount == 0) {
+			simCtx.init_tracking();
+		}
 		if (!simSpeedup) {
 			stepSim();
 		}
@@ -62,7 +68,13 @@
 	}
 
 	function stepSim() {
-		simCtx.step_simulation();
+		if (!runningPlayback) {
+			simCtx.step_simulation();
+		}
+		else {
+			simCtx.step_simulation_playback();
+			updateSimParams();
+		}
 		simCtx.update_vertex_colors();
 		display.updateColorBuffer(simCtx.get_vertex_colors());
 		iterationCount += 1;
@@ -90,6 +102,10 @@
 		display.setSimSize(simWidth, simHeight);
 		display.updatePositionBuffer(simCtx.get_vertex_positions());
 		display.updateColorBuffer(simCtx.get_vertex_colors());
+		if (runningPlayback) {
+			simCtx.init_playback(simPreset);
+			updateSimParams();
+		}
 		display.renderFrame();
 	}
 
@@ -106,6 +122,36 @@
 		console.log(`Simulation took ${elapsedTime.toFixed(2)} ms (${(elapsedTime / 1000).toFixed(2)} ms)`);
 	}
 
+	function updateSimParams() {
+		simAlpha = simCtx.get_alpha();
+		simBeta = simCtx.get_beta();
+		simGamma = simCtx.get_gamma();
+		simAlphaRand = simCtx.get_alpha_rand();
+	}
+
+	function copySimReprToClipboard() {
+		if (!simCtx) {
+			return;
+		}
+		if (iterationCount == 0) {
+			simCtx.init_tracking();
+		}
+		var text = simCtx.get_simulation_string_repr();
+		let url = location.href;
+		if (url.includes("?")) {
+			url = url + "&preset=" + text;
+		}
+		else {
+			url = url + "?preset=" + text;
+		}
+		console.log("Simulation url: "+ url);
+		navigator.clipboard.writeText(url).then(function() {
+			console.log('Copied simulation URL to clipboard');
+		}, function(err) {
+			console.error('Could not copy text: ', err);
+		});
+	}
+
 	function parseURLParams() {
 		const urlParams = new URLSearchParams(location.search);
 		if (urlParams.get("size") != null) {
@@ -116,6 +162,10 @@
 		if (urlParams.get("seed") != null) {
 			simRandSeed = urlParams.get("seed");
 		}	
+		if (urlParams.get("preset") != null) {
+			simPreset = urlParams.get("preset");
+			runningPlayback = true;
+		}
 	}
 
 	$: if (simCtx) simCtx.set_alpha(simAlpha);
@@ -138,10 +188,10 @@
 				Iteration: {iterationCount} 
 			</div>
 			<div id="paraminputs">
-<p>&nbsp;α:</p> <input type="number" bind:value={simAlpha} title="Alpha (Vapor Addition) parameter">    
-<p>&nbsp;β:</p> <input type="number" bind:value={simBeta} title="Beta (Background Vapor) parameter">
-<p>&nbsp;γ:</p> <input type="number" bind:value={simGamma} title="Gamma (Vapor Diffusion) parameter">
-<p>αr:</p> <input type="number" bind:value={simAlphaRand} title="Alpha (Vapor Addition) randomization parameter, in percent">   
+<p>&nbsp;α:</p> <input type="number" bind:value={simAlpha} disabled={runningPlayback} title="Alpha (Vapor Addition) parameter">    
+<p>&nbsp;β:</p> <input type="number" bind:value={simBeta} disabled={runningPlayback} title="Beta (Background Vapor) parameter">
+<p>&nbsp;γ:</p> <input type="number" bind:value={simGamma} disabled={runningPlayback} title="Gamma (Vapor Diffusion) parameter">
+<p>αr:</p> <input type="number" bind:value={simAlphaRand} disabled={runningPlayback} title="Alpha (Vapor Addition) randomization parameter, in percent">   
 			</div>
 		</div>
 		<Display bind:this={display}></Display>
@@ -153,7 +203,10 @@
 				<Fa icon={faBolt} size="1.5x" color={simSpeedup ? "white" : "grey"} />
 			</button>
 			<button on:click={initSim} title="Reset Simulation">
-				<Fa icon={faUndo} size="1.5x" color="white" />
+				<Fa icon={faUndo} size="1.5x" color="white"/>
+			</button>
+			<button on:click={copySimReprToClipboard} title="Share Simulation by URL">
+				<Fa icon={faShare} size="1.5x" color="white" />
 			</button>
 			<button on:click={display.screenshot()} title="Download image of Simulation">
 				<Fa icon={faDownload} size="1.5x" color="white" />
@@ -196,6 +249,10 @@
 		padding-right: 0.5em;
 		width: 55px;
 		-moz-appearance:textfield;
+	}
+
+	input:disabled {
+		color:grey;
 	}
 
 	input::-webkit-outer-spin-button,

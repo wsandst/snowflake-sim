@@ -8,7 +8,7 @@ use std::io::Write;
 /// Track the history of an attribute
 #[derive(Serialize, Deserialize)]
 struct AttribHistory {
-    history : Vec<(u16, f32)>
+    history : Vec<(u16, f64)>
 }
 
 /// Track the history of a Snowflake Simulation
@@ -33,8 +33,8 @@ impl AttribHistory {
     /// Update the attribute for a certain time tick
     fn add(&mut self, tick: usize, value: f64) {
         // Only add to history if there was a change
-        if self.history.len() == 0 || self.history.last().unwrap().1 != (value as f32) {
-            self.history.push((tick as u16, value as f32));
+        if self.history.len() == 0 || self.history.last().unwrap().1 != value {
+            self.history.push((tick as u16, value));
         }
     }
 
@@ -76,11 +76,14 @@ impl SimStateHistory {
     pub fn init_tracking(&mut self, sim : &sim::SnowflakeSim) {
         self.size = (sim.width, sim.height);
         self.seed = sim.seed;
-        // Record the starting frozen cells
-        for y in 0..sim.height {
-            for x in 0..sim.width {
-                if sim.get_water(x, y) >= 1.0 {
-                    self.start_filled.push((x,y));
+        // if beta is greater than 1.0, all cells are frozen, do not record
+        if sim.background_vapor < 1.0 {
+            // Record the starting frozen cells
+            for y in 0..sim.height {
+                for x in 0..sim.width {
+                    if sim.get_water(x, y) >= 1.0 {
+                        self.start_filled.push((x,y));
+                    }
                 }
             }
         }
@@ -104,7 +107,8 @@ impl SimStateHistory {
         let beta = self.beta_history.get(0);
         let gamma = self.gamma_history.get(0);
         let mut sim = sim::SnowflakeSim::new(self.size.0, self.size.1, alpha, beta, gamma);
-        sim.vapor_addition_rand = self.alpha_rand_history.get(0);
+        sim.vapor_diffusion_rand = self.alpha_rand_history.get(0);
+        sim.set_random_seed(self.seed);
         for (x, y) in &self.start_filled {
             sim.set_water(*x, *y, 1.0);
         }
@@ -117,7 +121,7 @@ impl SimStateHistory {
         sim.vapor_diffusion = self.alpha_history.get(count) as f64;
         sim.background_vapor = self.beta_history.get(count) as f64;
         sim.vapor_addition = self.gamma_history.get(count) as f64;
-        sim.vapor_addition_rand = self.alpha_rand_history.get(count) as f64;
+        sim.vapor_diffusion_rand = self.alpha_rand_history.get(count) as f64;
     }
 
     /// Serialize the sim state history to a base64 string,
@@ -158,6 +162,7 @@ mod tests {
     fn test_history_tracking() {
         let mut sim1 = sim::SnowflakeSim::new(GRID_WIDTH, GRID_HEIGHT, 1.0, 0.4, 0.0001);
         sim1.set_water(GRID_WIDTH / 2 - 1, GRID_HEIGHT / 2 - 1, 1.0);
+        sim1.set_random_seed(12831321);
     
         let mut tracker = SimStateHistory::new();
         tracker.init_tracking(&sim1);
@@ -167,6 +172,7 @@ mod tests {
             sim1.step();
             if i == 8 {
                 sim1.vapor_diffusion = 0.9; 
+                sim1.vapor_diffusion_rand = 0.3;
             }
             else if i == 15 {
                 sim1.vapor_addition = 0.01;
@@ -197,7 +203,7 @@ mod tests {
             for x in 0..GRID_WIDTH {
                 let water1 = sim1.get_water(x, y);
                 let water2 = sim2.get_water(x, y);
-                if (water1 - water2).abs() > 0.00001 {
+                if (water1 - water2).abs() > f64::EPSILON {
                     return false;
                 }
             }

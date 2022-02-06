@@ -140,6 +140,15 @@ impl SnowflakeSim {
         }
     }
 
+    pub fn fill_starting_background_vapor(&mut self) {
+        for i in 0..self.current.len() {
+            if self.current[i].water < 1.0 {
+                self.current[i].water = self.background_vapor;
+                self.next[i].water = self.background_vapor;
+            }
+        }
+    }
+
     /// Get the next random f64 from the random buffer.
     /// 
     /// Wraps around after `RANDOM_BUFFER_SIZE` has been exceeded
