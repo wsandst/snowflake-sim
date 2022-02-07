@@ -166,6 +166,10 @@
 			simPreset = urlParams.get("preset");
 			runningPlayback = true;
 		}
+		if (urlParams.get("color") != null) {
+			let color = urlParams.get("color");
+			display.setSimColor(color);
+		}
 	}
 
 	$: if (simCtx) simCtx.set_alpha(simAlpha);

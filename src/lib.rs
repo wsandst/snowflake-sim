@@ -9,6 +9,8 @@ static HEX_SIZE: f32 = 1.0;
 /// At what water value should we start displaying color?
 static COLOR_CUTTOFF: f32 = 0.6;
 
+static TRANSPARENT_BACKGROUND : bool = false;
+
 #[wasm_bindgen]
 
 /// Represents the simulation context which exposes an interface of the
@@ -119,11 +121,13 @@ impl SnowflakeSimContext {
             for x in 0..self.sim.width {
                 let water = self.sim.get_water(x, y) as f32;
                 let color = if water < COLOR_CUTTOFF { 0.0 } else { water };
+                let alpha = if color == 0.0 && TRANSPARENT_BACKGROUND { 0.0 } else { 1.0 };
                 for _ in 0..4 * 3 {
                     self.vertex_colors[i + 0] = color;
                     self.vertex_colors[i + 1] = color;
                     self.vertex_colors[i + 2] = color;
-                    self.vertex_colors[i + 3] = 1.0;
+                    self.vertex_colors[i + 3] = alpha;
+
                     i += 4;
                 }
             }

@@ -18,7 +18,7 @@
 	// Drawing settings
 	let hexWidth;
 	let hexHeight
-	const color = [0.5, 0.82, 0.96, 1.0];
+	let color = [0.5, 0.82, 0.96, 1.0];
 	let offset = [0, 0];
 	let scale = 1.0;
 
@@ -70,6 +70,16 @@
 		updateCanvasSize();
 	}
 
+	export function setSimColor(hex) {
+		var bigint = parseInt(hex, 16);
+		var r = (bigint >> 16) & 255;
+		var g = (bigint >> 8) & 255;
+		var b = bigint & 255;
+		color = [r,g,b,1.0];
+		console.log(color);
+		console.log(hex);
+	}
+
 	export function renderFrame() {
 		if (canvas.width != canvas.getBoundingClientRect().width
 				|| canvas.height != canvas.getBoundingClientRect().height) {
@@ -85,8 +95,8 @@
 	export function screenshot() {
 		// Take a 2000x2000 screenshot
 		// Temporarily increase canvas size
-		canvas.width = 2000;
-		canvas.height = 2000;
+		canvas.width = 4000;
+		canvas.height = 4000;
 		scale = (canvas.width-10)/(hexWidth*Math.sqrt(3));
 		offset = [5, 35];
 		glCtx.viewport(0, 0, canvas.width, canvas.height);
