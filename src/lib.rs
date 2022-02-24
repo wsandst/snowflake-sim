@@ -9,8 +9,6 @@ static HEX_SIZE: f32 = 1.0;
 /// At what water value should we start displaying color?
 static COLOR_CUTTOFF: f32 = 0.6;
 
-static TRANSPARENT_BACKGROUND : bool = false;
-
 #[wasm_bindgen]
 
 /// Represents the simulation context which exposes an interface of the
@@ -20,6 +18,7 @@ pub struct SnowflakeSimContext {
     sim_history: sim_history::SimStateHistory,
     vertex_positions: Vec<f32>,
     vertex_colors: Vec<f32>,
+    transparent_background: bool,
 }
 
 #[wasm_bindgen]
@@ -35,7 +34,8 @@ impl SnowflakeSimContext {
             sim: sim::SnowflakeSim::new(width, height, alpha, beta, gamma),
             vertex_positions: vec![0.0; width * height * 2 * 4 * 3],
             vertex_colors: vec![0.0; width * height * 4 * 4 * 3],
-            sim_history: sim_history::SimStateHistory::new()
+            sim_history: sim_history::SimStateHistory::new(),
+            transparent_background: false
         }
     }
 
@@ -121,7 +121,7 @@ impl SnowflakeSimContext {
             for x in 0..self.sim.width {
                 let water = self.sim.get_water(x, y) as f32;
                 let color = if water < COLOR_CUTTOFF { 0.0 } else { water };
-                let alpha = if color == 0.0 && TRANSPARENT_BACKGROUND { 0.0 } else { 1.0 };
+                let alpha = if color == 0.0 && self.transparent_background { 0.0 } else { 1.0 };
                 for _ in 0..4 * 3 {
                     self.vertex_colors[i + 0] = color;
                     self.vertex_colors[i + 1] = color;
@@ -184,6 +184,11 @@ impl SnowflakeSimContext {
     /// Set the random seed of the simulation
     pub fn set_random_seed(&mut self, seed : u64) {
         self.sim.set_random_seed(seed);
+    }
+
+    /// Set whether the background should be transparent or not
+    pub fn set_transparent_background(&mut self, value: bool) {
+        self.transparent_background = value;
     }
 
     pub fn get_alpha(&self) -> f64 {

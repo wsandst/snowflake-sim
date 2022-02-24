@@ -89,11 +89,11 @@
 	}
 
 	/**
-	 * Take a high-res screenshot (2000x2000)
+	 * Take a high-res screenshot (4000x4000)
 	 * @return screenshot array
 	 */
 	export function screenshot() {
-		// Take a 2000x2000 screenshot
+		// Take a 4000x4000 screenshot
 		// Temporarily increase canvas size
 		canvas.width = 4000;
 		canvas.height = 4000;
@@ -137,6 +137,9 @@
 	}
 
 	function zoom(event) {
+		// Disable zoom for now
+		return;
+
 		let x = event.offsetX / scale + offset[0];
 		let y = (canvas.width - event.offsetY) / scale + offset[1];
 		let zoomScale = (event.deltaY * -0.001);
@@ -147,18 +150,6 @@
 		scale = newScale;
 		offset = [offsetX, offsetY];
 		renderFrame();
-
-		/*let x = (event.offsetX - offset[0]) / scale;
-		let y = (event.offsetY - offset[1]) / scale;
-		let zoomScale = (event.deltaY * -0.001);
-		scale = scale + scale*zoomScale;
-		//let scaleDelta = newScale - scale;
-		//let offsetX = (x * scaleDelta);
-		//let offsetY = (y * scaleDelta);
-		//console.log(offsetX, offsetY, offset);
-		//scale = newScale;
-		offset = [event.offsetX - x * scale, event.offsetY - y * scale];
-		renderFrame();*/
 	}
 
 </script>
